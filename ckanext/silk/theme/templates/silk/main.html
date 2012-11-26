@@ -1,18 +1,89 @@
-<html xmlns:py="http://genshi.edgewall.org/"
+<form
+  py:with="tab_mode=(c.action=='edit')"
+  class="form-horizontal"
+  id="dataset-edit"
+  method="post"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  xmlns:foaf="http://xmlns.com/foaf/0.1/"
-  xmlns:owl="http://www.w3.org/2002/07/owl#"
-  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-  xmlns:dc="http://purl.org/dc/terms/"
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:dcat="http://www.w3.org/ns/dcat#"
-  typeof="dcat:Dataset"
-  about=""
-  py:strip="">
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude" >
 
- <body>
-    Pene!
- </body>
-</html>
+    <script language ="JavaScript">
+        function get_resources(element) {
+                var xmlHttp = null;
+
+                xmlHttp = new XMLHttpRequest();
+                xmlHttp.open( "GET", '/silk/get_resources/' + element.value, false );
+                xmlHttp.send( null );
+                result = xmlHttp.responseText;
+     
+                opt = document.getElementById('dest_resource_id').innerHTML = result;
+            }
+            
+    </script>
+
+    <py:def function="body_class">${h.literal('no-sidebar')}</py:def>
+    <py:def function="page_title">Silk - Link Discovery Framework</py:def>
+    
+    <div py:match="//div[@id='content']" class="front-page">
+        <div>
+            <h1 class="page_heading">Select data sources from ${c.dataset_name}</h1>
+        </div>
+        
+        <fieldset class="tab-pane fade in active" id="origin_dataset_information">
+        <div class="control-group resource-select">
+            <label class="control-label" for="resource_id">Resource</label>
+            <div class="controls">
+                <select id="resource_id" name="resource_id">
+                    <option value="None" selected="selected"></option>
+                    <py:for each="resource_id, resource_title in c.resources">
+                        <option value="${resource_id}">${resource_title}</option>
+                    </py:for>
+                </select>
+            </div>
+        </div>
+        
+        </fieldset>
+        
+        <div>
+            <h2 class="page_heading">Select dataset to link</h2>
+        </div>
+        
+        
+        <fieldset class="tab-pane fade in active" id="dest_dataset_information">
+            <div class="control-group dataset-field">
+                <label class="control-label" for="dataset_id">Dataset</label>
+                <div class="controls">
+                    <select id="dest_package_id" name="dest_package_id" onchange="javascript:get_resources(this)">
+                        <option value="None" selected="selected"></option>
+                        <py:for each="package_title, package_id in c.packages">
+                            <option value="${package_id}">${package_title}</option>
+                        </py:for>
+                    </select>
+                </div>
+            </div>        
+            
+            <div class="control-group resource-select">
+            <label class="control-label" for="dest_resource_id">Resource</label>
+            <div class="controls">
+                <select id="dest_resource_id" name="dest_resource_id">
+                    <option value="None" selected="selected"></option>
+                </select>
+            </div>
+        </div>
+            
+        </fieldset>
+        
+        
+        
+        <div class="form-actions">
+            <input id="next" class="btn btn-primary" name="next" type="submit" value="${_('Next')}" />
+            <py:if test="c.pkg">
+                <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='package', action='read', id=c.pkg.name)}" />
+            </py:if>
+        </div>
+    </div>
+    
+    
+    <xi:include href="layout.html" />
+</form>
 

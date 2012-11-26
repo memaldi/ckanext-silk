@@ -29,7 +29,7 @@ class SilkExtension(SingletonPlugin):
     def filter(self, stream):
         routes = request.environ.get('pylons.routes_dict')
         log.info(routes)
-        if routes.get('controller') == 'package' and routes.get('action') == 'edit':
+        if routes.get('controller') == 'package':
 
                 stream = stream | Transformer('//ul[@class="nav nav-pills"]').append(HTML(
                     
@@ -47,5 +47,6 @@ class SilkExtension(SingletonPlugin):
     def before_map(self, map):
         map.connect('/silk/main', controller='ckanext.silk.controller:SilkController', action='error')
         map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='main')
+        map.connect('/silk/get_resources/{value}', controller='ckanext.silk.controller:SilkController', action='get_resources')
         return map
     
