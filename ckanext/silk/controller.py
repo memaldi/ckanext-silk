@@ -2,52 +2,16 @@ from ckan.plugins import SingletonPlugin, IPackageController, implements
 from ckan.lib.base import BaseController, render, c, model, g, request
 from logging import getLogger
 from ckan.logic import NotAuthorized, check_access
+import urllib
 import ckan
+import json
+from rdflib import Graph
 import ckanext.datastore.logic.action as action
 
 log = getLogger(__name__)
 
 class SilkController(BaseController):
-
-    '''def main(self, id):
-        c.dataset_id = id
-        context = {'model': model, 'session': model.Session,
-                       'user': c.user or c.author}
-        data_dict = {
-            'q': '*:*',
-            'facet.field': g.facets,
-            'rows': 0,
-            'start': 0,
-            'fq': 'capacity:"public"'
-        }
-      
-        query = ckan.logic.get_action('package_list')(
-            context, data_dict)
-        c.packages = []
-        c.resources = []
-        for package_id in query:
-            
-            data_dict = {
-                'q': '*:*',
-                'facet.field': g.facets,
-                'rows': 0,
-                'start': 0,
-                'fq': 'capacity:"public"',
-                'id': package_id
-            }
-            package = ckan.logic.get_action('package_show')(
-                    context, data_dict)
-            if package_id != id:
-                c.packages.append((package['title'], package_id))
-            else:
-                c.dataset_name = package['title']
-                if package['resources'][0]['format'] in ['api/sparql', 'application/rdf+xml']:
-                    #log.info(package['resources'][0])
-                    for resource in package['resources']:
-                        c.resources.append((resource['id'], resource['name']))
-                    #c.resources.append((package['resources'][0]['id'], package['resources'][0]['name']))
-        return render('silk/main.html')'''
-        
+          
     def __before__(self, action, **env):
         BaseController.__before__(self, action, **env)
         try:
@@ -84,18 +48,106 @@ class SilkController(BaseController):
         
         return return_html
         
+    def get_classes(self, property, resource_id):
+        unquoted_property = urllib.unquote(property)
+        log.info(self.dest_resource_id)
+        log.info(resource_id)
+        
+        context = {'model': model, 'session': model.Session,
+                       'user': c.user or c.author}
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': resource_id
+        }
+            
+        resource = ckan.logic.get_action('resource_show')(
+                    context, data_dict)
+                    
+        resource_url = resource['url']
+        json_result = None
+        if (resource['format'] == 'api/sparql'):
+            sparql_query = 'SELECT DISTINCT ?class WHERE { [] <%s> ?class }' % unquoted_property
+            params = urllib.urlencode({'query': sparql_query, 'format': 'application/json'})
+            f = urllib.urlopen(resource_url, params)
+            json_result = json.loads(f.read())
+            
+        output_html = '''
+                            <label class="control-label" for="classes">Classes:</label>
+                            <div class="controls">
+                            <select id="orig_class_select" name="orig_class_select">
+        '''
+        
+        if json_result != None:
+            #log.info(type(json_result))
+            bindings = json_result['results']['bindings']
+            for binding in bindings:
+                value = binding['class']['value']
+                output_html += '<option value="%s">%s</option>' % (value, value)
+        output_html += '''</select>
+                    </div>'''
+
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': resource_id
+        }
+                
+        return output_html
+        
+        
+    def restrictions(self, context, params):
+        
+        
+        log.info(request.params)        
+        routes = request.environ.get('pylons.routes_dict')
+        c.dataset_id = routes['id']
+        c.orig_resource = params['resource_id']
+        self.dest_resource_id = params['dest_resource_id']
+        c.dest_dataset_id = params['dest_package_id']
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': c.dataset_id
+            }
+        
+        package = ckan.logic.get_action('package_show')(
+                    context, data_dict)
+                    
+        c.orig_dataset_name = package['title']    
+        
+        c.form = render('silk/restrictions_form.html')
+        
+        return render('silk/restrictions.html')
         
     def register(self, data=None, errors=None, error_summary=None):
         return self.new(data, errors, error_summary)
         
     def new(self, data=None, errors=None, error_summary=None):
         log.info(request.params)
-        
         routes = request.environ.get('pylons.routes_dict')
         c.dataset_id = routes['id']
         
-        context = {'model': model, 'session': model.Session,
-                       'user': c.user or c.author}
+        context = { 'model': model, 
+                    'session': model.Session,
+                    'user': c.user or c.author,
+                    'save': 'save' in request.params}
+                       
+        #### NEXT STEP
+        if context['save'] and not data:
+            return self.restrictions(context, request.params)
+                       
         data_dict = {
             'q': '*:*',
             'facet.field': g.facets,
@@ -124,14 +176,12 @@ class SilkController(BaseController):
                 c.packages.append((package['title'], package_id))
                 
             else:
-                c.dataset_name = package['title']
+                c.orig_dataset_name = package['title']
                 
                 if package['resources'][0]['format'] in ['api/sparql', 'application/rdf+xml']:
-                    #log.info(package['resources'][0])
                     for resource in package['resources']:
                         c.resources.append((resource['id'], resource['name']))
-                    #c.resources.append((package['resources'][0]['id'], package['resources'][0]['name']))
-        log.info(c.packages)
+                                                
         data = data or {}
         errors = errors or {}
         error_summary = error_summary or {}
