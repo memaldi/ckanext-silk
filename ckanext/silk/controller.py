@@ -50,9 +50,6 @@ class SilkController(BaseController):
         
     def get_classes(self, property, resource_id):
         unquoted_property = urllib.unquote(property)
-        log.info(self.dest_resource_id)
-        log.info(resource_id)
-        
         context = {'model': model, 'session': model.Session,
                        'user': c.user or c.author}
         
@@ -67,7 +64,7 @@ class SilkController(BaseController):
             
         resource = ckan.logic.get_action('resource_show')(
                     context, data_dict)
-                    
+        
         resource_url = resource['url']
         json_result = None
         if (resource['format'] == 'api/sparql'):
@@ -75,7 +72,7 @@ class SilkController(BaseController):
             params = urllib.urlencode({'query': sparql_query, 'format': 'application/json'})
             f = urllib.urlopen(resource_url, params)
             json_result = json.loads(f.read())
-            
+                
         output_html = '''
                             <label class="control-label" for="classes">Classes:</label>
                             <div class="controls">
@@ -89,17 +86,8 @@ class SilkController(BaseController):
                 value = binding['class']['value']
                 output_html += '<option value="%s">%s</option>' % (value, value)
         output_html += '''</select>
-                    </div>'''
-
-        data_dict = {
-                'q': '*:*',
-                'facet.field': g.facets,
-                'rows': 0,
-                'start': 0,
-                'fq': 'capacity:"public"',
-                'id': resource_id
-        }
-                
+                    </div>'''        
+                                
         return output_html
         
         
@@ -109,8 +97,8 @@ class SilkController(BaseController):
         log.info(request.params)        
         routes = request.environ.get('pylons.routes_dict')
         c.dataset_id = routes['id']
-        c.orig_resource = params['resource_id']
-        self.dest_resource_id = params['dest_resource_id']
+        c.orig_resource_id = params['resource_id']
+        c.dest_resource_id = params['dest_resource_id']
         c.dest_dataset_id = params['dest_package_id']
         
         data_dict = {
@@ -125,16 +113,33 @@ class SilkController(BaseController):
         package = ckan.logic.get_action('package_show')(
                     context, data_dict)
                     
-        c.orig_dataset_name = package['title']    
+        c.orig_dataset_name = package['title']
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': c.dest_dataset_id
+        }
+        
+        dest_package = ckan.logic.get_action('package_show')(
+                    context, data_dict)
+                    
+        c.dest_dataset_name = dest_package['title']
+        
         
         c.form = render('silk/restrictions_form.html')
         
         return render('silk/restrictions.html')
         
     def register(self, data=None, errors=None, error_summary=None):
+        log.info('register!!')
         return self.new(data, errors, error_summary)
         
     def new(self, data=None, errors=None, error_summary=None):
+        log.info('new!!!')
         log.info(request.params)
         routes = request.environ.get('pylons.routes_dict')
         c.dataset_id = routes['id']
@@ -191,3 +196,16 @@ class SilkController(BaseController):
         c.form = render(self.new_user_form, extra_vars=vars)
         
         return render('silk/main.html')
+        
+    def properties(self, data=None, errors=None, error_summary=None):
+        log.info(request.params)
+        
+        data = data or {}
+        errors = errors or {}
+        error_summary = error_summary or {}
+        
+        vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
+        
+        c.form = render('silk/properties_form.html', extra_vars=vars)
+        
+        return render('silk/properties.html')
