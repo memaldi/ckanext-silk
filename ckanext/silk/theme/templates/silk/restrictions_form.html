@@ -8,12 +8,12 @@
   xmlns:xi="http://www.w3.org/2001/XInclude">
   
       <script language ="JavaScript">
-            function get_classes(resource_id, div_id) {
+            function get_classes(resource_id, div_id, dataset) {
                     var loading_html = '<div align="center" id="loading"><img src="/icons/progress.gif" alt="Loading" /></div>'
                     var xmlHttp = null;
                     value = document.getElementById('orig_restriction').value;
                     xmlHttp = new XMLHttpRequest();
-                    xmlHttp.open("GET", '/silk/get_classes/' + encodeURIComponent(encodeURIComponent(value)) + '/' + resource_id, false);
+                    xmlHttp.open("GET", '/silk/get_classes/' + encodeURIComponent(encodeURIComponent(value)) + '/' + resource_id + '/' + dataset, false);
                     document.getElementById(div_id).innerHTML = loading_html;
                     xmlHttp.send("");
                     
@@ -31,7 +31,7 @@
         <label class="control-label" for="resource">Restriction by property:</label>
         <div class="controls">
             <input id="orig_restriction" name="orig_restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
-            <button type="button" onclick="javascript:get_classes('${c.orig_resource_id}', 'orig_class_div')">Get Classes</button>
+            <button type="button" onclick="javascript:get_classes('${c.orig_resource_id}', 'orig_class_div', 'orig')">Get Classes</button>
         </div>
     </div>
     
@@ -48,12 +48,19 @@
         <label class="control-label" for="dest_resource">Restriction by property:</label>
         <div class="controls">
             <input id="dest_restriction" name="dest_restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
-            <button type="button" onclick="javascript:get_classes('${c.dest_resource_id}', 'dest_class_div')">Get Classes</button>
+            <button type="button" onclick="javascript:get_classes('${c.dest_resource_id}', 'dest_class_div', 'dest')">Get Classes</button>
         </div>
     </div>
   
     <div class="control-group" id="dest_class_div">
     
+    </div>
+    
+    <div class="control-group" id="hidden-fields">
+        <input type="hidden" name="dest_resource_id" value="${c.dest_resource_id}"/>
+        <input type="hidden" name="orig_resource_id" value="${c.orig_resource_id}"/>
+        <input type="hidden" name="dest_dataset_id" value="${c.dest_dataset_id}"/>
+        <input type="hidden" name="orig_dataset_id" value="${c.dataset_id}"/>
     </div>
     
     <div class="form-actions">

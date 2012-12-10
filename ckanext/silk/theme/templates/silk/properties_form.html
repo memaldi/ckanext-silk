@@ -1,0 +1,41 @@
+<form 
+  id="resource-properties" 
+  action="/silk/properties" 
+  method="post"
+  class="form-horizontal"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  
+  <div>
+    <h2>Properties from ${c.orig_dataset_name}</h2>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="orig_property">Property:</label>
+    <div class="controls">
+        <py:for each="property in c.orig_property_list">
+            <input type="radio" name="orig_property" value="${property}">${property}</input><br />
+        </py:for>
+    </div>
+  </div>
+  
+  <div>
+    <h2>Properties from ${c.dest_dataset_name}</h2>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="dest_property">Property:</label>
+    <div class="controls">
+        <py:for each="property in c.dest_property_list">
+            <input type="radio" name="dest_property" value="${property}">${property}</input><br />
+        </py:for>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="dest_property">Property:</label>
+  </div>
+  
+  
+</form>

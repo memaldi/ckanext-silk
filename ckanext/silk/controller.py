@@ -48,7 +48,7 @@ class SilkController(BaseController):
         
         return return_html
         
-    def get_classes(self, property, resource_id):
+    def get_classes(self, property, resource_id, dataset):
         unquoted_property = urllib.unquote(property)
         context = {'model': model, 'session': model.Session,
                        'user': c.user or c.author}
@@ -76,7 +76,7 @@ class SilkController(BaseController):
         output_html = '''
                             <label class="control-label" for="classes">Classes:</label>
                             <div class="controls">
-                            <select id="orig_class_select" name="orig_class_select">
+                            <select id="''' + dataset + '''_class_select" name="''' + dataset + '''_class_select">
         '''
         
         if json_result != None:
@@ -198,7 +198,100 @@ class SilkController(BaseController):
         return render('silk/main.html')
         
     def properties(self, data=None, errors=None, error_summary=None):
-        log.info(request.params)
+        log.info('Request params %s' % request.params)
+        req_params = request.params        
+   
+        context = {'model': model, 'session': model.Session,
+                       'user': c.user or c.author}
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': req_params['orig_dataset_id']
+        }
+        
+        orig_dataset = ckan.logic.get_action('package_show')(
+                    context, data_dict)
+        
+        c.orig_dataset_name = orig_dataset['title']
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': req_params['orig_resource_id']
+        }
+            
+        orig_resource = ckan.logic.get_action('resource_show')(
+                    context, data_dict)
+        
+        query = 'SELECT ?s WHERE { ?s <%s> <%s> } LIMIT 1' % (req_params['orig_restriction'], req_params['orig_class_select'])
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(orig_resource['url'], params)
+        json_result = json.loads(f.read())
+        
+        subject = json_result['results']['bindings'][0]['s']['value']
+        
+        query = 'SELECT DISTINCT ?p WHERE { <%s> ?p ?o }' % subject
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(orig_resource['url'], params)
+        json_result = json.loads(f.read())
+                
+        binding_list = json_result['results']['bindings']
+        c.orig_property_list = []      
+        
+        for binding in binding_list:
+            c.orig_property_list.append(binding['p']['value'])
+        
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': req_params['dest_dataset_id']
+        }
+        
+        dest_dataset = ckan.logic.get_action('package_show')(
+                    context, data_dict)
+        
+        c.dest_dataset_name = dest_dataset['title']
+        
+        data_dict = {
+                'q': '*:*',
+                'facet.field': g.facets,
+                'rows': 0,
+                'start': 0,
+                'fq': 'capacity:"public"',
+                'id': req_params['dest_resource_id']
+        }
+            
+        dest_resource = ckan.logic.get_action('resource_show')(
+                    context, data_dict)
+        
+        query = 'SELECT ?s WHERE { ?s <%s> <%s> } LIMIT 1' % (req_params['dest_restriction'], req_params['dest_class_select'])
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(dest_resource['url'], params)
+        json_result = json.loads(f.read())
+        
+        subject = json_result['results']['bindings'][0]['s']['value']
+        
+        query = 'SELECT DISTINCT ?p WHERE { <%s> ?p ?o }' % subject
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(dest_resource['url'], params)
+        json_result = json.loads(f.read())
+                
+        binding_list = json_result['results']['bindings']
+        c.dest_property_list = []     
+        
+        for binding in binding_list:
+            c.dest_property_list.append(binding['p']['value'])
         
         data = data or {}
         errors = errors or {}

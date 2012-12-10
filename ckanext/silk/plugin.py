@@ -49,7 +49,7 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='new')
         map.connect('/silk/properties', controller='ckanext.silk.controller:SilkController', action='properties')
         map.connect('/silk/get_resources/{value}', controller='ckanext.silk.controller:SilkController', action='get_resources')
-        map.connect('/silk/get_classes/{property}/{resource_id}', controller='ckanext.silk.controller:SilkController', action='get_classes')
+        map.connect('/silk/get_classes/{property}/{resource_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='get_classes')
         
         #map.connect('/silk/restrictions/{id}', controller='ckanext.silk.controller:SilkController', action='restrictions')
         return map
