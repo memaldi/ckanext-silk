@@ -7,6 +7,58 @@
   xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
   
+  <script language="JavaScript">
+    function metric_params(element) {
+        document.getElementById('special-params').innerHTML = '';
+        metric = element.value;
+        desc = '';
+        if (metric == 'levenshteinDistance') {
+            desc = 'Levenshtein distance. The minimum number of edits needed to transform one string into the other, with the allowable edit operations being insertion, deletion, or substitution of a single character.';
+        } else if (metric == 'levenshtein') {
+            desc = 'The levensthein distance normalized to the interval [0,1].';
+        } else if (metric == 'jaro') {
+            desc = 'Jaro distance metric. Simple distance metric originally developed to compare person names.';
+        } else if (metric == 'jaroWinkler') {
+            desc = 'Jaro-Winkler distance measure. The Jaro–Winkler distance metric is designed and best suited for short strings such as person names.';
+        } else if (metric == 'equality') {
+            desc = '0 if strings are equal, 1 otherwise.';
+        } else if (metric == 'inequality') {
+            desc = '1 if strings are equal, 0 otherwise.';
+        } else if (metric == 'jaccard') {
+            desc = 'Jaccard distance coefficient.';
+        } else if (metric == 'dice') {
+            desc = 'Dice distance coefficient.';
+        } else if (metric == 'softjaccard') {
+            desc = 'Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of ‘maxDistance’ are considered equivalent.';
+        } else if (metric == 'num') {
+            desc = 'Computes the numeric difference between two numbers. <br /> Parameters: <br /> <i>minValue</i>, <i>maxValue</i>. The minimum and maximum values which occur in the datasource';
+            innerHTML = '<div class="control-group">';
+            innerHTML += '<label class="control-label" for="compare_num_min">minValue:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" value="0" name="minValue"></input>'
+            innerHTML += '</div></div>';
+            
+            innerHTML += '<div class="control-group">';
+            innerHTML += '<label class="control-label" for="compare_num_max">maxValue:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" value="0" name="maxValue"></input>'
+            innerHTML += '</div></div>';
+
+            
+            document.getElementById('special-params').innerHTML = innerHTML;
+        } else if (metric == 'date') {
+            desc = 'Computes the distance between two dates ("YYYY-MM-DD" format). Returns the difference in days.';
+        } else if (metric == 'dateTime') {
+            desc = 'Computes the distance between two date time values (xsd:dateTime format). Returns the difference in seconds.';
+        } else if (metric == 'wgs84') {
+            desc = 'Computes the geographical distance between two points. <br />Parameters: <br /> <i>unit</i>: The unit in which the distance is measured. Allowed values: <i>meter</i> or <i>m</i> (default) , <i>kilometer</i> or <i>km</i>.';
+        }
+        
+        document.getElementById('metric-desc').innerHTML = desc;
+    } 
+  </script>
+  
+  
   <div>
     <h2>Properties from ${c.orig_dataset_name}</h2>
   </div>
@@ -17,6 +69,7 @@
         <py:for each="property in c.orig_property_list">
             <input type="radio" name="orig_property" value="${property}">${property}</input><br />
         </py:for>
+        <input type="radio" name="orig_property" value="orig_custom">Custom property: <input type="text" name="dest_custom"/></input>
     </div>
   </div>
   
@@ -30,12 +83,68 @@
         <py:for each="property in c.dest_property_list">
             <input type="radio" name="dest_property" value="${property}">${property}</input><br />
         </py:for>
+            <input type="radio" name="dest_property" value="dest_custom">Custom property: <input type="text" name="dest_custom"/></input>
+    </div>
+  </div>
+  
+  <div>
+    <h2>Compare metric settings</h2>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="compare_metric">Compare metric:</label>
+    <div class="controls">
+        <select name="compare_metric" onchange="javascript:metric_params(this)">
+            <option value="None" selected="selected"></option>
+            <option>----Character-Based Distance Measures----</option>
+            <option value="levenshteinDistance">Levenshtein Distance</option>
+            <option value="levenshtein">Normalized Levenshtein Distance</option>
+            <option value="jaro">Jaro Distance</option>
+            <option value="jaroWinkler">Jaro-Winkler Distance</option>
+            <option value="equality">Equality</option>
+            <option value="inequality">Inequality</option>
+            <option>----Token-Based Distance Measures----</option>
+            <option value="jaccard">Jaccard Distance</option>
+            <option value="dice">Dice Distance</option>
+            <option value="softjaccard">Soft Jaccard Similarity</option>
+            <option>----Special Purpose Distance Measures----</option>
+            <option value="num">Numeric difference</option>
+            <option value="date">Date Distance</option>
+            <option value="dateTime">DateTime Distance</option>
+            <option value="wgs84">Geographical Distance</option>
+        </select>
+        <p id="metric-desc">
+            
+        </p>
     </div>
   </div>
   
   <div class="control-group">
-    <label class="control-label" for="dest_property">Property:</label>
+    <label class="control-label" for="compare_required">Required:</label>
+    <div class="controls">
+        <input type="checkbox" name="required" value="required"/>
+    </div>
   </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="compare_weight">Weight:</label>
+    <div class="controls">
+        <input type="text" value="1" name="weight"></input>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="compare_threshold">Threshold:</label>
+    <div class="controls">
+        <input type="text" value="0.0" name="threshold"></input>
+    </div>
+  </div>
+  
+  
+  
+    <div id="special-params">
+        
+    </div>
   
   
 </form>
