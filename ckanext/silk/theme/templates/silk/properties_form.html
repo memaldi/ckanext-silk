@@ -8,6 +8,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude">
   
   <script language="JavaScript">
+            
     function metric_params(element) {
         document.getElementById('special-params').innerHTML = '';
         metric = element.value;
@@ -44,7 +45,6 @@
             innerHTML += '<input type="text" value="0" name="maxValue"></input>'
             innerHTML += '</div></div>';
 
-            
             document.getElementById('special-params').innerHTML = innerHTML;
         } else if (metric == 'date') {
             desc = 'Computes the distance between two dates ("YYYY-MM-DD" format). Returns the difference in days.';
@@ -52,10 +52,83 @@
             desc = 'Computes the distance between two date time values (xsd:dateTime format). Returns the difference in seconds.';
         } else if (metric == 'wgs84') {
             desc = 'Computes the geographical distance between two points. <br />Parameters: <br /> <i>unit</i>: The unit in which the distance is measured. Allowed values: <i>meter</i> or <i>m</i> (default) , <i>kilometer</i> or <i>km</i>.';
+            
+            innerHTML = '<div class="control-group">';
+            innerHTML += '<label class="control-label" for="wgs84_unit">unit:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" value="m" name="unit"></input>'
+            innerHTML += '</div></div>';
+            
+            document.getElementById('special-params').innerHTML = innerHTML;
         }
         
         document.getElementById('metric-desc').innerHTML = desc;
-    } 
+    }
+    
+    function add_transformation() {
+        lastElement = document.getElementById('transformation-controls').getElementsByTagName('select').item(document.getElementById('transformation-controls').getElementsByTagName('select').lenght - 1);
+        currentCount = lastElement.id.split('_')[1];
+        count = parseInt(currentCount) + 1;
+        element = lastElement.cloneNode(true);
+        element.name = "transformation_" + count.toString();
+        element.id = "transformation_" + count.toString();
+        
+        document.getElementById('transformation-controls').appendChild(document.createElement('br'));
+        document.getElementById('transformation-controls').appendChild(document.createElement('br'));
+        document.getElementById('transformation-controls').appendChild(element);
+    }
+    
+    function transformation_params(element) {
+        document.getElementById('transformation-params').innerHTML = '';
+        transformation = element.value;
+        desc = '';
+        
+        if (transformation == "removeBlanks") {
+            desc = 'Remove whitespace from a string.';
+        } else if (transformation == "removeSpecialChars") {
+            desc = 'Remove special characters (including punctuation) from a string.';
+        } else if (transformation == "lowerCase") {
+            desc = 'Convert a string to lower case.';
+        } else if (transformation == "upperCase") {
+            desc = 'Convert a string to upper case.';
+        } else if (transformation == "capitalize") {
+            desc = 'Capitalizes the string i.e. converts the first character to upper case. If <i>allWords</i> is set to true, all words are capitalized and not only the first character. By default <i>allWords</i> is set to false.';
+            
+            innerHTML = '<div class="control-group">';
+            innerHTML += '<label class="control-label" for="transformation_allWords">allWords:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="checkbox" name="allWords"></input>'
+            innerHTML += '</div></div>';
+            
+            document.getElementById('transformation-params').innerHTML = innerHTML;
+        } else if (transformation == "stem") {
+            desc = 'Apply word stemming to the string.';
+        } else if (transformation == "alphaReduce") {
+            desc = 'Strip all non-alphabetic characters from a string.';
+        } else if (transformation == "numReduce") {
+            desc = 'Strip all non-numeric characters from a string.';
+        } else if (transformation == "replace") {
+            desc = 'Replace all occurrences of "search" with <i>replace</i> in a string.';
+        } else if (transformation == "regexReplace") {
+            desc = 'Replace all occurrences of a regex "regex" with "replace" in a string.';
+        } else if (transformation == "stripPrefix") {
+            desc = 'Strip the prefix from a string.';
+        } else if (transformation == "stripPostfix") {
+            desc = 'Strip the postfix from a string.';
+        } else if (transformation == "stripUriPrefix") {
+            desc = 'Strip the URI prefix (e.g. http://dbpedia.org/resource/) from a string.';
+        } else if (transformation == "logarithm") {
+            desc = 'Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged. If base is not defined, it defaults to 10.';
+        } else if (transformation == "convert") {
+            desc = 'Converts the string from <i>sourceCharset</i> to <i>targetCharset</i>';
+        } else if (transformation == "tokenize") {
+            desc = 'Splits the string into tokens. Splits at all matches of <i>regex</i> if provided and at whitespaces otherwise.';
+        } else if (transformation == "removeValues") {
+            desc = 'Removes specific values (i.e. stop words) from the value set. <i>blacklist</i> is a comma-separated list of words.';
+        }
+        
+        document.getElementById('transformation-desc').innerHTML = desc;
+    }
   </script>
   
   
@@ -71,6 +144,44 @@
         </py:for>
         <input type="radio" name="orig_property" value="orig_custom">Custom property: <input type="text" name="dest_custom"/></input>
     </div>
+  </div>
+  
+  <div>
+    <h3>Transformation Settings <button type="button" id="button" onclick="javascript:add_transformation('+', this)">+</button></h3>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="transformation">Transformation:</label>
+    <div class="controls" id="transformation-controls">
+        <select name="transformation_0" id="transformation_0" onchange="javascript:transformation_params(this)">
+            <option value="None" selected="selected"></option>
+            <option value="removeBlanks">Remove Blanks</option>
+            <option value="removeSpecialChars">Remove Special Characters</option> 
+            <option value="lowerCase">Lower Case</option>
+            <option value="upperCase">Upper Case</option>
+            <option value="capitalize">Capitalize</option>
+            <option value="stem">Word Stemming</option>
+            <option value="alphaReduce">Alphanumeric Reduction</option>
+            <option value="numReduce">Numeric Reduction</option>
+            <option value="replace">Replace</option>
+            <option value="regexReplace">Regex Replace</option>
+            <option value="stripPrefix">Strip Prefix</option>
+            <option value="stripPostfix">Strip Postfix</option>
+            <option value="stripUriPrefix">Strip URI Prefix</option>
+            <!-- <option value="concat">Concatenate</option>-->
+            <option value="logarithm">Logarithm</option>
+            <option value="convert">Convert</option>
+            <option value="tokenize">Tokenize</option>
+            <option value="removeValues">Remove Values</option>
+        </select>
+        <p id="transformation-desc">
+            
+        </p>
+    </div>
+  </div>
+  
+   <div id="transformation-params">
+        
   </div>
   
   <div>
