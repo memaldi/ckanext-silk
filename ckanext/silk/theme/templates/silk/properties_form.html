@@ -65,26 +65,26 @@
         document.getElementById('metric-desc').innerHTML = desc;
     }
     
-    function add_transformation() {
-        lastElement = document.getElementById('transformation-controls').getElementsByTagName('select').item(document.getElementById('transformation-controls').getElementsByTagName('select').lenght - 1);
+    function add_transformation(source) {
+        lastElement = document.getElementById(source + '-transformation-controls').getElementsByTagName('select').item(document.getElementById(source + '-transformation-controls').getElementsByTagName('select').length - 1);
         currentCount = lastElement.id.split('_')[1];
         count = parseInt(currentCount) + 1;
         element = lastElement.cloneNode(true);
-        element.name = "transformation_" + count.toString();
-        element.id = "transformation_" + count.toString();
+        element.name = source + "-transformation_" + count.toString();
+        element.id = source + "-transformation_" + count.toString();
         
-        document.getElementById('transformation-controls').appendChild(document.createElement('br'));
-        document.getElementById('transformation-controls').appendChild(document.createElement('br'));
+        document.getElementById(source + '-transformation-controls').appendChild(document.createElement('br'));
+        document.getElementById(source + '-transformation-controls').appendChild(document.createElement('br'));
         
-        document.getElementById('transformation-controls').appendChild(element);
+        document.getElementById(source + '-transformation-controls').appendChild(element);
         
         desc_div = document.createElement('div');
-        desc_div.id = "transformation_" + count.toString() + "_desc";
-        document.getElementById('transformation-controls').appendChild(desc_div);
+        desc_div.id = source + "-transformation_" + count.toString() + "_desc";
+        document.getElementById(source + '-transformation-controls').appendChild(desc_div);
         
         params_div = document.createElement('div');
-        params_div.id = "transformation_" + count.toString() + "_params";
-        document.getElementById('transformation-controls').appendChild(params_div);
+        params_div.id = source + "-transformation_" + count.toString() + "_params";
+        document.getElementById(source + '-transformation-controls').appendChild(params_div);
     }
     
     function transformation_params(element) {
@@ -213,13 +213,13 @@
   </div>
   
   <div>
-    <h3>Transformation Settings <button type="button" id="button" onclick="javascript:add_transformation('+', this)">+</button></h3>
+    <h3>Transformation Settings <button type="button" id="orig-button" onclick="javascript:add_transformation('orig')">+</button></h3>
   </div>
-  <div id="transformation-div">
+  
       <div class="control-group">
         <label class="control-label" for="transformation">Transformation:</label>
-        <div class="controls" id="transformation-controls">
-            <select name="transformation_0" id="transformation_0" onchange="javascript:transformation_params(this)">
+        <div class="controls" id="orig-transformation-controls">
+            <select name="orig-ransformation_0" id="orig-transformation_0" onchange="javascript:transformation_params(this, 'orig')">
                 <option value="None" selected="selected"></option>
                 <option value="removeBlanks">Remove Blanks</option>
                 <option value="removeSpecialChars">Remove Special Characters</option> 
@@ -240,16 +240,15 @@
                 <option value="tokenize">Tokenize</option>
                 <option value="removeValues">Remove Values</option>
             </select>
-            <p id = "transformation_0_desc">
+            <p id = "orig-transformation_0_desc">
                 
             </p>
-            <div id="transformation_0_params">
+            <div id="orig-transformation_0_params">
             
             </div>
         </div>
       </div>
       
-  </div>
   <div>
     <h2>Properties from ${c.dest_dataset_name}</h2>
   </div>
@@ -263,6 +262,43 @@
             <input type="radio" name="dest_property" value="dest_custom">Custom property: <input type="text" name="dest_custom"/></input>
     </div>
   </div>
+  
+  <div>
+    <h3>Transformation Settings <button type="button" id="dest-button" onclick="javascript:add_transformation('dest')">+</button></h3>
+  </div>
+  
+      <div class="control-group">
+        <label class="control-label" for="transformation">Transformation:</label>
+        <div class="controls" id="dest-transformation-controls">
+            <select name="dest-transformation_0" id="dest-transformation_0" onchange="javascript:transformation_params(this, 'dest')">
+                <option value="None" selected="selected"></option>
+                <option value="removeBlanks">Remove Blanks</option>
+                <option value="removeSpecialChars">Remove Special Characters</option> 
+                <option value="lowerCase">Lower Case</option>
+                <option value="upperCase">Upper Case</option>
+                <option value="capitalize">Capitalize</option>
+                <option value="stem">Word Stemming</option>
+                <option value="alphaReduce">Alphanumeric Reduction</option>
+                <option value="numReduce">Numeric Reduction</option>
+                <option value="replace">Replace</option>
+                <option value="regexReplace">Regex Replace</option>
+                <option value="stripPrefix">Strip Prefix</option>
+                <option value="stripPostfix">Strip Postfix</option>
+                <option value="stripUriPrefix">Strip URI Prefix</option>
+                <!-- <option value="concat">Concatenate</option>-->
+                <option value="logarithm">Logarithm</option>
+                <option value="convert">Convert</option>
+                <option value="tokenize">Tokenize</option>
+                <option value="removeValues">Remove Values</option>
+            </select>
+            <p id="dest-transformation_0_desc">
+                
+            </p>
+            <div id="dest-transformation_0_params">
+            
+            </div>
+        </div>
+      </div>
   
   <div>
     <h2>Compare metric settings</h2>
