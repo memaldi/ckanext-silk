@@ -75,11 +75,20 @@
         
         document.getElementById('transformation-controls').appendChild(document.createElement('br'));
         document.getElementById('transformation-controls').appendChild(document.createElement('br'));
+        
         document.getElementById('transformation-controls').appendChild(element);
+        
+        desc_div = document.createElement('div');
+        desc_div.id = "transformation_" + count.toString() + "_desc";
+        document.getElementById('transformation-controls').appendChild(desc_div);
+        
+        params_div = document.createElement('div');
+        params_div.id = "transformation_" + count.toString() + "_params";
+        document.getElementById('transformation-controls').appendChild(params_div);
     }
     
     function transformation_params(element) {
-        document.getElementById('transformation-params').innerHTML = '';
+        document.getElementById(element.id + '_params').innerHTML = '';
         transformation = element.value;
         desc = '';
         
@@ -94,13 +103,13 @@
         } else if (transformation == "capitalize") {
             desc = 'Capitalizes the string i.e. converts the first character to upper case. If <i>allWords</i> is set to true, all words are capitalized and not only the first character. By default <i>allWords</i> is set to false.';
             
-            innerHTML = '<div class="control-group">';
-            innerHTML += '<label class="control-label" for="transformation_allWords">allWords:</label>';
+            //innerHTML = '<div class="control-group">';
+            innerHTML = '<label class="control-label" for="' + element.id +'_allWords">allWords:</label>';
             innerHTML += '<div class="controls">';
-            innerHTML += '<input type="checkbox" name="allWords"></input>'
-            innerHTML += '</div></div>';
+            innerHTML += '<input type="checkbox" name="' + element.id +'_allWords"></input>'
+            innerHTML += '</div>';//'</div>';
             
-            document.getElementById('transformation-params').innerHTML = innerHTML;
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         } else if (transformation == "stem") {
             desc = 'Apply word stemming to the string.';
         } else if (transformation == "alphaReduce") {
@@ -109,8 +118,32 @@
             desc = 'Strip all non-numeric characters from a string.';
         } else if (transformation == "replace") {
             desc = 'Replace all occurrences of "search" with <i>replace</i> in a string.';
-        } else if (transformation == "regexReplace") {
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_search">search:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_search"></input>'
+            innerHTML += '</div>';
+            
+            innerHTML += '<label class="control-label" for="' + element.id +'_replace">replace:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_replace"></input>'
+            innerHTML += '</div>';    
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
+        } else if (transformation == "regexReplace") {            
             desc = 'Replace all occurrences of a regex "regex" with "replace" in a string.';
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_regex">regex:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_regex"></input>'
+            innerHTML += '</div>';
+            
+            innerHTML += '<label class="control-label" for="' + element.id +'_regex_replace">replace:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_regex_replace"></input>'
+            innerHTML += '</div>';
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         } else if (transformation == "stripPrefix") {
             desc = 'Strip the prefix from a string.';
         } else if (transformation == "stripPostfix") {
@@ -119,15 +152,48 @@
             desc = 'Strip the URI prefix (e.g. http://dbpedia.org/resource/) from a string.';
         } else if (transformation == "logarithm") {
             desc = 'Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged. If base is not defined, it defaults to 10.';
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_base">base:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_base" value="10"></input>'
+            innerHTML += '</div>';
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         } else if (transformation == "convert") {
             desc = 'Converts the string from <i>sourceCharset</i> to <i>targetCharset</i>';
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_sourceCharset">sourceCharset:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_sourceCharset"></input>'
+            innerHTML += '</div>';
+            
+            innerHTML += '<label class="control-label" for="' + element.id +'_targetCharset">targetCharset:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_targetCharset"></input>'
+            innerHTML += '</div>';
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         } else if (transformation == "tokenize") {
             desc = 'Splits the string into tokens. Splits at all matches of <i>regex</i> if provided and at whitespaces otherwise.';
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_regex_tokenize">regex:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_regex_tokenize"></input>'
+            innerHTML += '</div>';
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         } else if (transformation == "removeValues") {
             desc = 'Removes specific values (i.e. stop words) from the value set. <i>blacklist</i> is a comma-separated list of words.';
+            
+            innerHTML = '<label class="control-label" for="' + element.id +'_blacklist">blacklist:</label>';
+            innerHTML += '<div class="controls">';
+            innerHTML += '<input type="text" name="' + element.id +'_blacklist"></input>'
+            innerHTML += '</div>';
+            
+            document.getElementById(element.id + '_params').innerHTML = innerHTML;
         }
         
-        document.getElementById('transformation-desc').innerHTML = desc;
+        document.getElementById(element.id + '_desc').innerHTML = desc;
     }
   </script>
   
@@ -149,41 +215,41 @@
   <div>
     <h3>Transformation Settings <button type="button" id="button" onclick="javascript:add_transformation('+', this)">+</button></h3>
   </div>
-  
-  <div class="control-group">
-    <label class="control-label" for="transformation">Transformation:</label>
-    <div class="controls" id="transformation-controls">
-        <select name="transformation_0" id="transformation_0" onchange="javascript:transformation_params(this)">
-            <option value="None" selected="selected"></option>
-            <option value="removeBlanks">Remove Blanks</option>
-            <option value="removeSpecialChars">Remove Special Characters</option> 
-            <option value="lowerCase">Lower Case</option>
-            <option value="upperCase">Upper Case</option>
-            <option value="capitalize">Capitalize</option>
-            <option value="stem">Word Stemming</option>
-            <option value="alphaReduce">Alphanumeric Reduction</option>
-            <option value="numReduce">Numeric Reduction</option>
-            <option value="replace">Replace</option>
-            <option value="regexReplace">Regex Replace</option>
-            <option value="stripPrefix">Strip Prefix</option>
-            <option value="stripPostfix">Strip Postfix</option>
-            <option value="stripUriPrefix">Strip URI Prefix</option>
-            <!-- <option value="concat">Concatenate</option>-->
-            <option value="logarithm">Logarithm</option>
-            <option value="convert">Convert</option>
-            <option value="tokenize">Tokenize</option>
-            <option value="removeValues">Remove Values</option>
-        </select>
-        <p id="transformation-desc">
+  <div id="transformation-div">
+      <div class="control-group">
+        <label class="control-label" for="transformation">Transformation:</label>
+        <div class="controls" id="transformation-controls">
+            <select name="transformation_0" id="transformation_0" onchange="javascript:transformation_params(this)">
+                <option value="None" selected="selected"></option>
+                <option value="removeBlanks">Remove Blanks</option>
+                <option value="removeSpecialChars">Remove Special Characters</option> 
+                <option value="lowerCase">Lower Case</option>
+                <option value="upperCase">Upper Case</option>
+                <option value="capitalize">Capitalize</option>
+                <option value="stem">Word Stemming</option>
+                <option value="alphaReduce">Alphanumeric Reduction</option>
+                <option value="numReduce">Numeric Reduction</option>
+                <option value="replace">Replace</option>
+                <option value="regexReplace">Regex Replace</option>
+                <option value="stripPrefix">Strip Prefix</option>
+                <option value="stripPostfix">Strip Postfix</option>
+                <option value="stripUriPrefix">Strip URI Prefix</option>
+                <!-- <option value="concat">Concatenate</option>-->
+                <option value="logarithm">Logarithm</option>
+                <option value="convert">Convert</option>
+                <option value="tokenize">Tokenize</option>
+                <option value="removeValues">Remove Values</option>
+            </select>
+            <p id = "transformation_0_desc">
+                
+            </p>
+            <div id="transformation_0_params">
             
-        </p>
-    </div>
+            </div>
+        </div>
+      </div>
+      
   </div>
-  
-   <div id="transformation-params">
-        
-  </div>
-  
   <div>
     <h2>Properties from ${c.dest_dataset_name}</h2>
   </div>
