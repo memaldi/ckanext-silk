@@ -1,12 +1,14 @@
+from pylons import config
 from ckan.plugins import SingletonPlugin, IPackageController, implements
 from ckan.lib.base import BaseController, render, c, model, g, request
 from logging import getLogger
-from ckan.logic import NotAuthorized, check_access
+from ckan.logic import NotAuthorized, check_access, get_action
 import urllib
 import ckan
 import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
+from ckan.lib.plugins import lookup_package_plugin
 
 log = getLogger(__name__)
 
@@ -302,3 +304,94 @@ class SilkController(BaseController):
         c.form = render('silk/properties_form.html', extra_vars=vars)
         
         return render('silk/properties.html')
+        
+    # Aqui empieza lo bueno
+    
+    def _get_package_type(self, id):
+        """
+        Given the id of a package it determines the plugin to load
+        based on the package's type name (type). The plugin found
+        will be returned, or None if there is no plugin associated with
+        the type.
+        """
+        pkg = model.Package.get(id)
+        if pkg:
+            return pkg.type or 'package'
+        return None
+        
+    def _package_form(self, package_type=None):
+        return lookup_package_plugin(package_type).package_form()
+    
+    def save(id, params):
+        pass
+        
+    
+    def read(self, id, data=None, errors=None, error_summary=None):
+        
+        log.info(request.params)
+        log.info(model)
+        if (len(request.params) > 0):
+            if request.params['save'] == 'Save':
+                save(id, request.params)
+             
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+                
+        return render('silk/read.html')
+        
+    def edit_linkage_rules(self, id, data=None, errors=None, error_summary=None):
+        '''Hook method made available for routing purposes.'''
+                
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+        
+        data_dict = {'id': id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+                
+        c.valid_resources = []
+        
+        for resource in c.pkg_dict['resources']:
+            if resource['format'] in ['api/sparql']:
+                c.valid_resources.append((resource['id'], resource['name']))
+        
+        data_dict = {}
+        
+        package_list = ckan.logic.get_action('package_list')(
+            context, data_dict)
+            
+        c.dest_packages = []
+        
+        for package_id in package_list:
+            data_dict = {'id': package_id}
+            package = get_action('package_show')(context, data_dict)
+            resources = package['resources']
+            valid = False
+            
+            for resource in resources:
+                if resource['format'] in ['api/sparql']:
+                    valid = True
+                    break
+                    
+            if valid:
+                c.dest_packages.append((package['title'], package['name']))
+        
+        
+        c.linkage_rules = None
+        
+        c.form = render('silk/linkage_rule_form.html')
+        
+        return render('silk/edit_linkage_rules.html')
+        
+    def linkage_rule_read(self):
+        pass
+        
+    

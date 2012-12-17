@@ -1,7 +1,43 @@
-<html xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/" 
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
-  <xi:include href="../layout_base.html" />
+<html 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    xmlns:py="http://genshi.edgewall.org/" 
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    py:strip="">
+    
+    <py:match path="minornavigation">
+        <ul class="nav nav-pills">
+            <li class="${'active' if c.action=='read' else ''}">${h.subnav_link(h.icon('rdf_flyer.24') + _('Overview'), controller='ckanext.silk.controller:SilkController', action='read', id=c.pkg.name)}</li>
+            <py:choose test="len(c.pkg_dict.get('linkage_rules', []))==0 and not h.check_access('package_update',{'id':c.pkg.id})">
+                <py:when test="True">
+                    <li class="disabled">
+                        <a href="#" onclick="return false;">${h.icon('package-disabled') + _('Linkage Rules (0)')}</a>
+                    </li>
+                </py:when>
+                <py:otherwise>
+                    <li class="dropdown ${'active' if (c.action=='linkage_rule_read' or c.action=='edit_linkage_rules') else ''}">
+                      <a class="dropdown-toggle" data-toggle="dropdown" href="#">${h.icon('page_white_stack') + _('Linkage Rules') + ' (' + str(len(c.pkg_dict.get('linkage_rules',[]))) + ')'}<b class="caret"></b></a>
+                      <div class="dropdown-appears">
+                        <ul class="dropdown-menu">
+                          <li py:if="h.check_access('package_update',{'id':c.pkg.id})">
+                            ${h.link_to(
+                              h.icon('page_white_add') + _('Add / Edit Linkage Rules'),
+                              h.url_for(action='edit_linkage_rules', id=c.pkg.name, controller='ckanext.silk.controller:SilkController')
+                              )}
+                            <hr py:if="len(c.pkg_dict.get('linkage_rules',[]))>0"/>
+                          </li>
+                          <li py:for="res in c.pkg_dict.get('linkage_rules', [])">
+                          <a href="${h.url_for(controller='ckanext.silk.controller:SilkController', action='linkage_rule_read', id=c.pkg_dict['name'], resource_id=res['id'])}">${h.resource_icon(res) + h.resource_display_name(res)}</a>
+                          </li>
+                        </ul>
+                      </div>
+                    </li>
+              </py:otherwise>
+            </py:choose>
+        </ul>
+        
+        
+    </py:match>
+    
+    <xi:include href="../layout_base.html" />
 </html>

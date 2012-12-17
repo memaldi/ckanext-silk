@@ -1,0 +1,90 @@
+<form 
+  id="linkage-rule-edit" 
+  action="/silk/${c.pkg['name']}" 
+  method="post"
+  class="form-horizontal"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  
+  <script language ="JavaScript">
+        function get_resources(element) {
+                var xmlHttp = null;
+
+                xmlHttp = new XMLHttpRequest();
+                xmlHttp.open( "GET", '/silk/get_resources/' + element.value, false );
+                xmlHttp.send( null );
+                result = xmlHttp.responseText;
+     
+                opt = document.getElementById('dest_resource_id').innerHTML = result;
+            }
+            
+    </script>
+  
+  <fieldset id="resources" class="tab-pane">
+    <div class="row">
+        <div class="span4">
+            <ul class="resource-list resource-list-edit drag-drop-list ui-sortable">
+                
+                
+                <ul class="resource-list resource-list-add">
+                    <li class="${'' if c.linkage_rules else 'active'}"><a class="js-resource-add" href="#"><img width="16px" height="16px" class="inline-icon " alt="None" src="/images/icons/page_white_add.png"/> New Linkage Rule...</a></li>
+                </ul>
+            </ul>
+        </div>
+        <div class="span8">
+            <div class="resource-panel" style="">
+                <button class="btn btn-danger resource-panel-close">x</button>
+                <div class="resource-details resource-add" style="display: block;">
+                    
+                    <div class="control-group">
+                        <label class="control-label" property="rdfs:label" for="">Name</label>
+                        <div class="controls" property="rdf:value">
+                            <input class="js-resource-edit-name" type="text" value="" name="new_linkage_rule_name"/>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label" for="resource">Resource from ${c.pkg['title']}</label>
+                        <div class="controls">
+                            <select id="resource_id" name="resource_id">
+                                <option value="None" selected="selected"></option>
+                                <py:for each="resource_id, resource_title in c.valid_resources">
+                                    <option value="${resource_id}">${resource_title}</option>
+                                </py:for>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label" for="dataset_id">Dataset to link to</label>
+                        <div class="controls">
+                            <select id="dest_package_id" name="dest_package_id" onchange="javascript:get_resources(this)">
+                                <option value="None" selected="selected"></option>
+                                <py:for each="package_title, package_id in c.dest_packages">
+                                    <option value="${package_id}">${package_title}</option>
+                                </py:for>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label" for="dest_resource_id">Resource</label>
+                        <div class="controls">
+                            <select id="dest_resource_id" name="dest_resource_id">
+                                <option value="None" selected="selected"></option>
+                            </select>
+                        </div>
+                    </div>     
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+  </fieldset>
+  
+  <div class="form-actions">
+    <input id="save" name="save" type="submit" class="btn btn-primary" value="Save" />
+  </div>
+  
+</form>

@@ -1,0 +1,24 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:foaf="http://xmlns.com/foaf/0.1/"
+      xmlns:owl="http://www.w3.org/2002/07/owl#"
+      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+      xmlns:dc="http://purl.org/dc/terms/"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:dcat="http://www.w3.org/ns/dcat#"
+      typeof="dcat:Dataset"
+      about=""
+      py:strip="">
+  
+  
+   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])}
+  - Silk Link Discovery Framework</py:def>
+  
+  <py:def function="page_heading" property="dc:title">
+    ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+  - Silk Link Discovery Framework
+  </py:def>
+  
+    <xi:include href="layout.html" />
+</html>

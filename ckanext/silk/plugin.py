@@ -34,8 +34,8 @@ class SilkExtension(SingletonPlugin):
                 stream = stream | Transformer('//ul[@class="nav nav-pills"]').append(HTML(
                     
                     '''<li class>
-                        <a class href="/silk/main/%s">
-                            <img src="/icons/rdf_flyer.24" height="16px" width="16px" alt="None" class="inline-icon ">
+                        <a class href="/silk/%s">
+                            <img src="/images/icons/rdf_flyer.24.png" height="16px" width="16px" alt="None" class="inline-icon ">
                             Silk
                         </a>
                     </li>''' % routes.get('id')
@@ -45,12 +45,14 @@ class SilkExtension(SingletonPlugin):
         return stream
         
     def before_map(self, map):
-        map.connect('/silk/main', controller='ckanext.silk.controller:SilkController', action='error')
-        map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='new')
-        map.connect('/silk/properties', controller='ckanext.silk.controller:SilkController', action='properties')
+        map.connect('/silk/{id}', controller='ckanext.silk.controller:SilkController', action='read')
+        map.connect('/silk/editlinkagerules/{id}', controller='ckanext.silk.controller:SilkController', action='edit_linkage_rules')
+        #map.connect('/silk/linkage-rule-edit/{id}', controller='ckanext.silk.controller:SilkController', action='edit_linkage_rules')
+        #map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='new')
+        #map.connect('/silk/properties', controller='ckanext.silk.controller:SilkController', action='properties')
         map.connect('/silk/get_resources/{value}', controller='ckanext.silk.controller:SilkController', action='get_resources')
-        map.connect('/silk/get_classes/{property}/{resource_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='get_classes')
+        #map.connect('/silk/get_classes/{property}/{resource_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='get_classes')
+        
         
         #map.connect('/silk/restrictions/{id}', controller='ckanext.silk.controller:SilkController', action='restrictions')
         return map
-    
