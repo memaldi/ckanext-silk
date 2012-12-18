@@ -26,8 +26,8 @@
                               )}
                             <hr py:if="len(c.pkg_dict.get('linkage_rules',[]))>0"/>
                           </li>
-                          <li py:for="res in c.pkg_dict.get('linkage_rules', [])">
-                          <a href="${h.url_for(controller='ckanext.silk.controller:SilkController', action='linkage_rule_read', id=c.pkg_dict['name'], resource_id=res['id'])}">${h.resource_icon(res) + h.resource_display_name(res)}</a>
+                          <li py:for="lr in c.pkg_dict.get('linkage_rules', [])">
+                            <a href="${h.url_for(controller='ckanext.silk.controller:SilkController', action='resource_read', id=c.pkg_dict['name'], linkage_rule_id=lr['id'])}">${h.icon('page_white') + _(lr['name'])}</a>
                           </li>
                         </ul>
                       </div>

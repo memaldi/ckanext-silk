@@ -1,0 +1,71 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:foaf="http://xmlns.com/foaf/0.1/"
+      xmlns:owl="http://www.w3.org/2002/07/owl#"
+      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+      xmlns:dc="http://purl.org/dc/terms/"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:dcat="http://www.w3.org/ns/dcat#"
+      typeof="dcat:Dataset"
+      about=""
+      py:strip="">
+  
+  
+   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - ${c.linkage_rule_dict['name']}
+  - Silk Link Discovery Framework</py:def>
+  
+  <py:def function="page_heading" property="dc:title">
+    ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+  - Silk Link Discovery Framework
+  </py:def>
+  
+  <div py:match="content">
+        <div class="resource-actions">
+            <a class="btn btn-primary " href="/silk/editlinkagerules/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Edit Rule</a>
+        </div>
+        <div class="quick-info">
+            <dl>
+                <dt>Rule Name</dt>
+                <dd>${c.linkage_rule_dict['name']}</dd>
+                <dt>Source Resource</dt>
+                <dd>${c.orig_resource['name']} (<a href="${c.orig_resource['url']}">${c.orig_resource['url']}</a>)</dd>
+                <dt>Dest. Dataset</dt>
+                <dd><a href="/dataset/${c.dest_pkg_dict['name']}">${c.dest_pkg_dict['name']}</a></dd>
+                <dt>Dest. Resource</dt>
+                <dd>${c.dest_resource['name']} (<a href="${c.dest_resource['url']}">${c.dest_resource['url']}</a>)</dd>
+            </dl>
+        </div>
+        
+        <h3>Class Restrictions</h3>
+        <div class="notes">
+            <div id="notes-extract">
+                <h4>Restrictions for Source Dataset (${c.pkg_dict.get('title', c.pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Restriction settings</a></h4> 
+                <py:choose>
+                    <py:when test="len(c.restrictions) == 0">
+                        <p>No restrictions set for (${c.pkg_dict.get('title', c.pkg_dict['name'])}). </p>
+                    </py:when>
+                    <py:otherwise>
+                        <p>No premio!</p>
+                    </py:otherwise>
+                </py:choose>
+            </div>
+        </div>
+        <div class="notes">
+            <div id="notes-extract">
+                <h4>Restrictions for Destination Dataset (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Restriction settings</a></h4> 
+                <py:choose>
+                    <py:when test="len(c.restrictions) == 0">
+                        <p>No restrictions set for (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}). </p>
+                    </py:when>
+                    <py:otherwise>
+                        <p>No premio!</p>
+                    </py:otherwise>
+                </py:choose>
+            </div>
+        </div>
+        
+  </div>
+  
+    <xi:include href="layout.html"/>
+</html>

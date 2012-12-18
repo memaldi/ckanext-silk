@@ -9,6 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
+from ckanext.silk.model import LinkageRule
 
 log = getLogger(__name__)
 
@@ -322,18 +323,23 @@ class SilkController(BaseController):
     def _package_form(self, package_type=None):
         return lookup_package_plugin(package_type).package_form()
     
-    def save(id, params):
+    def save(self, id, params):
+        session = model.Session
+        log.info(params['dest_package_id'])
+        linkage_rule = LinkageRule(params['new_linkage_rule_name'], id, params['resource_id'], params['dest_package_id'], params['dest_resource_id'])
+        session.add(linkage_rule)
+        session.commit()
         pass
         
     
     def read(self, id, data=None, errors=None, error_summary=None):
         
         log.info(request.params)
-        log.info(model)
         if (len(request.params) > 0):
             if request.params['save'] == 'Save':
-                save(id, request.params)
-             
+                self.save(id, request.params)
+        
+        
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
@@ -342,7 +348,18 @@ class SilkController(BaseController):
         
         c.pkg_dict = get_action('package_show')(context, data_dict)
         c.pkg = context['package']
-                
+        
+        linkage_rules = model.Session.query(LinkageRule).filter_by(orig_dataset_id=c.pkg_dict['name'])
+        
+        linkage_rules_list = []
+        
+        for linkage_rule in linkage_rules:
+            linkage_rules_list.append({'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id})
+        
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+        
+        log.info(linkage_rules)
+        
         return render('silk/read.html')
         
     def edit_linkage_rules(self, id, data=None, errors=None, error_summary=None):
@@ -391,7 +408,46 @@ class SilkController(BaseController):
         
         return render('silk/edit_linkage_rules.html')
         
-    def linkage_rule_read(self):
-        pass
+    def resource_read(self, id, linkage_rule_id):
+        
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+
+        linkage_rules = model.Session.query(LinkageRule).filter_by(orig_dataset_id=c.pkg_dict['name'])
+        
+        linkage_rules_list = []
+        
+        for linkage_rule in linkage_rules:
+            linkage_rules_list.append({'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id})
+        
+        log.info(linkage_rules_list)
+        
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        log.info(linkage_rule.dest_dataset_id)
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        data_dict = {'id': linkage_rule.orig_resource_id}
+        c.orig_resource = ckan.logic.get_action('resource_show')(context, data_dict)
+                    
+        data_dict = {'id': linkage_rule.dest_dataset_id}
+        c.dest_pkg_dict = get_action('package_show')(context, data_dict)
+        
+        data_dict = {'id': linkage_rule.dest_resource_id}
+        c.dest_resource = ckan.logic.get_action('resource_show')(context, data_dict)
+
+        c.restrictions = linkage_rule.restrictions
+        log.info(c.restrictions)
+
+        
+
+        return render('silk/read_linkage_rule.html')
         
     
