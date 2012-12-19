@@ -1,6 +1,6 @@
 <form 
   id="resource-restrictions" 
-  action="/silk/properties" 
+  action="/silk/readlinkagerule/${c.linkage_rule_dict['orig_dataset_id']}/${c.linkage_rule_dict['id']}" 
   method="post"
   class="form-horizontal"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
@@ -8,63 +8,53 @@
   xmlns:xi="http://www.w3.org/2001/XInclude">
   
       <script language ="JavaScript">
-            function get_classes(resource_id, div_id, dataset) {
-                    var loading_html = '<div align="center" id="loading"><img src="/icons/progress.gif" alt="Loading" /></div>'
+            function get_classes(resource_url) {
+                    var loading_html = '<div align="center" id="loading"><img src="/images/icons/progress.gif" alt="Loading" /></div>'
                     var xmlHttp = null;
-                    value = document.getElementById('orig_restriction').value;
+                    value = document.getElementById('restriction').value;
                     xmlHttp = new XMLHttpRequest();
-                    xmlHttp.open("GET", '/silk/get_classes/' + encodeURIComponent(encodeURIComponent(value)) + '/' + resource_id + '/' + dataset, false);
-                    document.getElementById(div_id).innerHTML = loading_html;
+                    xmlHttp.open("GET", '/silk/get_classes/' + encodeURIComponent(encodeURIComponent(value)) + '/' + encodeURIComponent(encodeURIComponent(resource_url)), false);
+                    document.getElementById('class_div').innerHTML = loading_html;
                     xmlHttp.send("");
                     
                     result = xmlHttp.responseText;
          
-                    opt = document.getElementById(div_id).innerHTML = result;
+                    opt = document.getElementById('class_div').innerHTML = result;
                 }
         </script>
   
     <div>
-        <h2>Restrictions for ${c.orig_dataset_name}</h2>
+        <h2>Restrictions for ${c.pkg_dict['title']}</h2>
+    </div>
+    
+    <div class="control-group">
+        <label class="control-label" for="variable_name">Variable Name:</label>
+        <div class="controls">
+            <input id="variable_name" name="variable_name" type="text" value="?"/>
+        </div>
     </div>
     
     <div class="control-group">
         <label class="control-label" for="resource">Restriction by property:</label>
         <div class="controls">
-            <input id="orig_restriction" name="orig_restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
-            <button type="button" onclick="javascript:get_classes('${c.orig_resource_id}', 'orig_class_div', 'orig')">Get Classes</button>
+            <input id="restriction" name="restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <button type="button" onclick="javascript:get_classes('${c.resource_dict['url']}')">Get Classes</button>
         </div>
     </div>
     
-    <div class="control-group" id="orig_class_div">
+    <div class="control-group" id="class_div">
         
-    
-    </div>
-  
-    <div>
-        <h2>Restrictions for ${c.dest_dataset_name}</h2>
-    </div>
-    
-    <div class="control-group">
-        <label class="control-label" for="dest_resource">Restriction by property:</label>
-        <div class="controls">
-            <input id="dest_restriction" name="dest_restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
-            <button type="button" onclick="javascript:get_classes('${c.dest_resource_id}', 'dest_class_div', 'dest')">Get Classes</button>
-        </div>
-    </div>
-  
-    <div class="control-group" id="dest_class_div">
     
     </div>
     
     <div class="control-group" id="hidden-fields">
-        <input type="hidden" name="dest_resource_id" value="${c.dest_resource_id}"/>
-        <input type="hidden" name="orig_resource_id" value="${c.orig_resource_id}"/>
-        <input type="hidden" name="dest_dataset_id" value="${c.dest_dataset_id}"/>
-        <input type="hidden" name="orig_dataset_id" value="${c.dataset_id}"/>
+        <input type="hidden" name="dataset_id" value="${c.pkg['name']}"/>
+        <input type="hidden" name="resource_id" value="${c.resource_dict['id']}"/>
+        <input type="hidden" name="restriction-save" value="true"/>
     </div>
     
     <div class="form-actions">
-            <input id="save" name="save" type="submit" class="btn btn-primary" value="${_('Next')} &raquo;" />
+            <input id="save" name="save" type="submit" class="btn btn-primary" value="Save" />
     </div>
   
 </form>

@@ -29,21 +29,39 @@ class LinkageRule(object):
 restriction_table = Table('restriction', metadata,
         Column('id', Integer, primary_key=True),
         Column('resource_id', UnicodeText, nullable=False),
+        Column('variable_name', UnicodeText, nullable=False),
         Column('property', UnicodeText, nullable=False),
+        Column('class_name', UnicodeText, nullable=False),
         Column('linkage_rule_id', Integer, ForeignKey('linkage_rule.id')),
 )
 
 class Restriction(object):
     
-    def __init__(self, id, resource_id, property, linkage_rule_id):
-        self.id = id
+    def __init__(self, resource_id, variable_name, property, class_name, linkage_rule_id):
         self.resource_id = resource_id
+        self.variable_name = variable_name
         self.property = property
+        self.class_name = class_name
         self.linkage_rule_id = linkage_rule_id
 
+path_input_table = Table('path_input', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('restriction_id', UnicodeText, nullable=False),
+        Column('path_input', UnicodeText, nullable=False),
+)
+
+class PathInput(object):
+    
+    def __init__(self, restriction_id, path_input):
+        self.restriction_id = restriction_id
+        self.path_input = path_input
+
+mapper(PathInput, path_input_table)
+mapper(Restriction, restriction_table, properties={'path_inputs': relationship(PathInput, backref='restriction', order_by=path_input_table.c.id)})
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
-mapper(Restriction, restriction_table)
+
 
 
 #engine = create_engine('postgresql://ckanuser:pass@localhost/ckantest')
+#metadata.drop_all(engine)
 #metadata.create_all(engine)

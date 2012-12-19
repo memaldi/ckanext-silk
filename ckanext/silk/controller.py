@@ -9,7 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
-from ckanext.silk.model import LinkageRule
+from ckanext.silk.model import LinkageRule, Restriction
 
 log = getLogger(__name__)
 
@@ -51,52 +51,32 @@ class SilkController(BaseController):
         
         return return_html
         
-    def get_classes(self, property, resource_id, dataset):
+    def get_classes(self, property, resource_url):
         unquoted_property = urllib.unquote(property)
-        context = {'model': model, 'session': model.Session,
-                       'user': c.user or c.author}
-        
-        data_dict = {
-                'q': '*:*',
-                'facet.field': g.facets,
-                'rows': 0,
-                'start': 0,
-                'fq': 'capacity:"public"',
-                'id': resource_id
-        }
-            
-        resource = ckan.logic.get_action('resource_show')(
-                    context, data_dict)
-        
-        resource_url = resource['url']
+        resource_url = urllib.unquote(resource_url)
         json_result = None
-        if (resource['format'] == 'api/sparql'):
-            sparql_query = 'SELECT DISTINCT ?class WHERE { [] <%s> ?class }' % unquoted_property
-            params = urllib.urlencode({'query': sparql_query, 'format': 'application/json'})
-            f = urllib.urlopen(resource_url, params)
-            json_result = json.loads(f.read())
-                
+        
+        sparql_query = 'SELECT DISTINCT ?class WHERE { [] <%s> ?class }' % unquoted_property
+        params = urllib.urlencode({'query': sparql_query, 'format': 'application/json'})
+        f = urllib.urlopen(resource_url, params)
+        json_result = json.loads(f.read())
         output_html = '''
                             <label class="control-label" for="classes">Classes:</label>
                             <div class="controls">
-                            <select id="''' + dataset + '''_class_select" name="''' + dataset + '''_class_select">
+                            <select id="class_select" name="class_select">
         '''
         
         if json_result != None:
-            #log.info(type(json_result))
             bindings = json_result['results']['bindings']
             for binding in bindings:
                 value = binding['class']['value']
                 output_html += '<option value="%s">%s</option>' % (value, value)
         output_html += '''</select>
                     </div>'''        
-                                
         return output_html
         
         
-    def restrictions(self, context, params):
-        
-        
+    def restrictions(self, context, params): 
         log.info(request.params)        
         routes = request.environ.get('pylons.routes_dict')
         c.dataset_id = routes['id']
@@ -410,6 +390,15 @@ class SilkController(BaseController):
         
     def resource_read(self, id, linkage_rule_id):
         
+        log.info('Params: %s' % request.params)
+        log.info(request)
+        
+        if len(request.params) > 0:
+            if 'restriction-save' in request.params:
+                if request.params['restriction-save'] == 'true':
+                    self.save_restriction(request.params, linkage_rule_id)
+                
+        
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
@@ -425,9 +414,7 @@ class SilkController(BaseController):
         
         for linkage_rule in linkage_rules:
             linkage_rules_list.append({'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id})
-        
-        log.info(linkage_rules_list)
-        
+                
         c.pkg_dict['linkage_rules'] = linkage_rules_list
 
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
@@ -443,11 +430,64 @@ class SilkController(BaseController):
         data_dict = {'id': linkage_rule.dest_resource_id}
         c.dest_resource = ckan.logic.get_action('resource_show')(context, data_dict)
 
-        c.restrictions = linkage_rule.restrictions
-        log.info(c.restrictions)
-
+        c.orig_restrictions_list = []
+        c.dest_restrictions_list = []
+        restrictions = linkage_rule.restrictions
         
+        for restriction in restrictions:
+            if restriction.resource_id == c.orig_resource['id']:
+                c.orig_restrictions_list.append({'id': restriction.id, 'resource_id': restriction.resource_id, 'variable_name': restriction.variable_name, 'property': restriction.property, 'class_name': restriction.class_name, 'linkage_rule_id': restriction.linkage_rule_id})
+            elif restriction.resource_id == c.dest_resource['id']:
+                c.dest_restrictions_list.append({'id': restriction.id, 'resource_id': restriction.resource_id, 'variable_name': restriction.variable_name, 'property': restriction.property, 'class_name': restriction.class_name, 'linkage_rule_id': restriction.linkage_rule_id})
+        
+        c.restrictions_control = False
+        
+        if len(c.orig_restrictions_list) > 0 and len(c.dest_restrictions_list):
+            c.restrictions_control = True
 
         return render('silk/read_linkage_rule.html')
         
-    
+    def save_restriction(self, params, linkage_rule_id):
+        restriction = Restriction(params['resource_id'], params['variable_name'], params['restriction'], params['class_select'], linkage_rule_id)
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        
+        linkage_rule.restrictions.append(restriction)
+        model.Session.add(restriction)
+        model.Session.commit()
+        
+    def restriction_edit(self, linkage_rule_id, dataset):
+          
+        c.dataset = dataset
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        if dataset == 'orig':
+            pkg_id = linkage_rule.orig_dataset_id
+            resource_id = linkage_rule.orig_resource_id
+        else:
+            pkg_id = linkage_rule.dest_dataset_id
+            resource_id = linkage_rule.dest_resource_id
+            
+        data_dict = {'id': pkg_id}
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+        
+        data_dict = {'id': resource_id}
+        c.resource_dict = get_action('resource_show')(context, data_dict)
+        
+        linkage_rules = model.Session.query(LinkageRule).filter_by(orig_dataset_id=c.pkg_dict['name'])
+        
+        linkage_rules_list = []
+        
+        for linkage_rule in linkage_rules:
+            linkage_rules_list.append({'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id})
+        
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+        
+        c.form = render('silk/restrictions_form.html')
+            
+        return render('silk/restrictions.html')

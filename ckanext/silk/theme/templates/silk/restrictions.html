@@ -2,8 +2,13 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
   
-  <py:def function="page_title">Silk - Link Discovery Framework</py:def>
-  <py:def function="page_heading">Define dataset restrictions</py:def>
+  <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - ${c.linkage_rule_dict['name']}
+  - Silk Link Discovery Framework</py:def>
+  
+  <py:def function="page_heading" property="dc:title">
+    ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+  - Silk Link Discovery Framework
+  </py:def>
 
   <div py:match="content">
     ${Markup(c.form)}

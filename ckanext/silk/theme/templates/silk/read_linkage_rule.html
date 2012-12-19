@@ -40,31 +40,69 @@
         <h3>Class Restrictions</h3>
         <div class="notes">
             <div id="notes-extract">
-                <h4>Restrictions for Source Dataset (${c.pkg_dict.get('title', c.pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Restriction settings</a></h4> 
+                <h4>Restrictions for Source Dataset (${c.pkg_dict.get('title', c.pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/orig">Restriction settings</a></h4> 
                 <py:choose>
-                    <py:when test="len(c.restrictions) == 0">
+                    <py:when test="len(c.orig_restrictions_list) == 0">
                         <p>No restrictions set for (${c.pkg_dict.get('title', c.pkg_dict['name'])}). </p>
                     </py:when>
                     <py:otherwise>
-                        <p>No premio!</p>
+                        <div class="quick-info">
+                            <py:for each="restriction in c.orig_restrictions_list">
+                                <dl>
+                                    <dt>Variable Name</dt>
+                                    <dd>${restriction['variable_name']}</dd>
+                                    <dt>Property</dt>
+                                    <dd>${restriction['property']}</dd>
+                                    <dt>Class</dt>
+                                    <dd>${restriction['class_name']}</dd>
+                                </dl>
+                            </py:for>
+                        </div>
                     </py:otherwise>
                 </py:choose>
             </div>
         </div>
         <div class="notes">
             <div id="notes-extract">
-                <h4>Restrictions for Destination Dataset (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Restriction settings</a></h4> 
+                <h4>Restrictions for Destination Dataset (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/dest">Restriction settings</a></h4> 
                 <py:choose>
-                    <py:when test="len(c.restrictions) == 0">
+                    <py:when test="len(c.dest_restrictions_list) == 0">
                         <p>No restrictions set for (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}). </p>
                     </py:when>
                     <py:otherwise>
-                        <p>No premio!</p>
+                        <div class="quick-info">
+                            <py:for each="restriction in c.dest_restrictions_list">
+                                <dl>
+                                    <dt>Variable Name</dt>
+                                    <dd>${restriction['variable_name']}</dd>
+                                    <dt>Property</dt>
+                                    <dd>${restriction['property']}</dd>
+                                    <dt>Class</dt>
+                                    <dd>${restriction['class_name']}</dd>
+                                </dl>
+                            </py:for>
+                        </div>
                     </py:otherwise>
                 </py:choose>
             </div>
         </div>
         
+        <py:choose>
+            <py:when test="c.restrictions_control">
+                <h3>Path Inputs</h3>
+                <div class="notes">
+                    <div id="notes-extract">
+                        <h4>Path Inputs for (${c.pkg_dict.get('title', c.pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/dest">Path Input settings</a></h4>
+                    </div>
+                </div>
+                
+                <div class="notes">
+                    <div id="notes-extract">
+                        <h4>Path Inputs for (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/dest">Path Input settings</a></h4>
+                    </div>
+                </div>
+            </py:when>
+        </py:choose>
   </div>
   
     <xi:include href="layout.html"/>
