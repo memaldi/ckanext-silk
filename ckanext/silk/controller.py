@@ -9,7 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
-from ckanext.silk.model import LinkageRule, Restriction
+from ckanext.silk.model import LinkageRule, Restriction, PathInput
 
 log = getLogger(__name__)
 
@@ -397,7 +397,8 @@ class SilkController(BaseController):
             if 'restriction-save' in request.params:
                 if request.params['restriction-save'] == 'true':
                     self.save_restriction(request.params, linkage_rule_id)
-                
+                elif request.params['pathinput-save'] == 'true':
+                    self.save_path_input(request.params, linkage_rule_id)
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -491,3 +492,63 @@ class SilkController(BaseController):
         c.form = render('silk/restrictions_form.html')
             
         return render('silk/restrictions.html')
+
+    def path_input_edit(self, linkage_rule_id, dataset):
+        c.dataset = dataset
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        if dataset == 'orig':
+            pkg_id = linkage_rule.orig_dataset_id
+            resource_id = linkage_rule.orig_resource_id
+        else:
+            pkg_id = linkage_rule.dest_dataset_id
+            resource_id = linkage_rule.dest_resource_id
+            
+        data_dict = {'id': pkg_id}
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+        
+        data_dict = {'id': resource_id}
+        c.resource_dict = get_action('resource_show')(context, data_dict)
+        
+        resource_url = c.resource_dict['url']
+        
+        restrictions = linkage_rule.restrictions
+        
+        for restriction in restrictions:
+            if restriction.resource_id == c.resource_dict['id']:
+                selected_restriction = restriction
+        
+        query = 'SELECT DISTINCT ?s WHERE { ?s <%s> <%s> } LIMIT 1' % (selected_restriction.property, selected_restriction.class_name)
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(resource_url, params)
+        json_result = json.loads(f.read())
+        
+        binding_list = json_result['results']['bindings']
+        
+        subject = binding_list[0]['s']['value']
+        
+        query = 'SELECT DISTINCT ?p WHERE { <%s> ?p ?o }' % subject
+        
+        params = urllib.urlencode({'query': query, 'format': 'application/json'})
+        f = urllib.urlopen(resource_url, params)
+        json_result = json.loads(f.read())
+        
+        binding_list = json_result['results']['bindings']
+        
+        c.property_list = []
+        
+        for binding in binding_list:
+            c.property_list.append(binding['p']['value'])
+        
+        c.form = render('silk/path_input_form.html')
+        return render('silk/path_input.html')
+
+
+    def save_path_input(self, params, linkage_rule_id):
+        path_input = PathInput()

@@ -1,0 +1,32 @@
+<form 
+  id="path-inputs" 
+  action="/silk/readlinkagerule/${c.linkage_rule_dict['orig_dataset_id']}/${c.linkage_rule_dict['id']}" 
+  method="post"
+  class="form-horizontal"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <div>
+        <h2>Path input for ${c.pkg_dict['title']}</h2>
+    </div>
+    
+    <div class="control-group">
+    <label class="control-label" for="input_path">Property:</label>
+    <div class="controls">
+        <py:for each="property in c.property_list">
+            <input type="radio" name="input_path" value="${property}">${property}</input><br />
+        </py:for>
+        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+    </div>
+  </div>
+  
+  <div class="control-group" id="hidden-fields">
+        <input type="hidden" name="pathinput-save" value="true"/>
+  </div>
+  
+  <div class="form-actions">
+        <input id="save" name="save" type="submit" class="btn btn-primary" value="Save" />
+  </div>
+
+</form>

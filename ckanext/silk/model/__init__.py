@@ -46,7 +46,7 @@ class Restriction(object):
 
 path_input_table = Table('path_input', metadata,
         Column('id', Integer, primary_key=True),
-        Column('restriction_id', UnicodeText, nullable=False),
+        Column('restriction_id', Integer,ForeignKey('restriction.id')),
         Column('path_input', UnicodeText, nullable=False),
 )
 
