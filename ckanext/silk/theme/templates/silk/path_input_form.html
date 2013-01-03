@@ -8,7 +8,11 @@
   xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <div>
-        <h2>Path input for ${c.pkg_dict['title']}</h2>
+        <h2>Path input for ${c.variable_name}</h2>
+    </div>
+    
+    <div class="control-group">
+        
     </div>
     
     <div class="control-group">
@@ -23,6 +27,7 @@
   
   <div class="control-group" id="hidden-fields">
         <input type="hidden" name="pathinput-save" value="true"/>
+        <input type="hidden" name="restriction-id" value="${c.restriction_id}"/>
   </div>
   
   <div class="form-actions">

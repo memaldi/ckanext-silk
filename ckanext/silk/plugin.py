@@ -50,6 +50,7 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/readlinkagerule/{id}/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/editrestriction/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='restriction_edit')
         map.connect('/silk/editpathinput/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='path_input_edit')
+        map.connect('/silk/{id}/{linkage_rule_id}/deletepathinput/{path_input_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         #map.connect('/silk/linkage-rule-edit/{id}', controller='ckanext.silk.controller:SilkController', action='edit_linkage_rules')
         #map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='new')
         #map.connect('/silk/properties', controller='ckanext.silk.controller:SilkController', action='properties')

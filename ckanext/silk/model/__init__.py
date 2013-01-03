@@ -55,8 +55,39 @@ class PathInput(object):
     def __init__(self, restriction_id, path_input):
         self.restriction_id = restriction_id
         self.path_input = path_input
+        
+transformation_table = Table('transformation', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('name', UnicodeText, nullable=False),
+)
+
+class Transformation(object):
+    
+    def __init__(self, name):
+        self.name = name
+        
+parameter_table = Table('parameter', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('name', UnicodeText, nullable=False),
+        Column('value', UnicodeText, nullable=False),
+        Column('transformation_id', Integer, ForeignKey('transformation.id')),
+)        
+
+class Parameter(object):
+    
+    def __init__ (self, name, value, transformation_id):
+        self.name = name
+        self.value = value
+        self.transformation_id = transformation_id
+        
+transformation_path_inputs_association_table = Table('association_t_p', metadata,
+        Column('transformation_id', Integer, ForeignKey('transformation.id')),
+        Column('path_input_id', Integer, ForeignKey('path_input.id')),
+)
 
 mapper(PathInput, path_input_table)
+mapper(Parameter, parameter_table)
+mapper(Transformation, transformation_table, properties={'path_inputs': relationship(PathInput, secondary=transformation_path_inputs_association_table, backref='transformations'), 'parameters': relationship(Parameter, backref='transformation', order_by=parameter_table.c.id)})
 mapper(Restriction, restriction_table, properties={'path_inputs': relationship(PathInput, backref='restriction', order_by=path_input_table.c.id)})
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
 

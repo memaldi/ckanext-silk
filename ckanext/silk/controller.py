@@ -388,7 +388,7 @@ class SilkController(BaseController):
         
         return render('silk/edit_linkage_rules.html')
         
-    def resource_read(self, id, linkage_rule_id):
+    def resource_read(self, id, linkage_rule_id, path_input_id=None):
         
         log.info('Params: %s' % request.params)
         log.info(request)
@@ -397,8 +397,12 @@ class SilkController(BaseController):
             if 'restriction-save' in request.params:
                 if request.params['restriction-save'] == 'true':
                     self.save_restriction(request.params, linkage_rule_id)
-                elif request.params['pathinput-save'] == 'true':
+            elif 'pathinput-save' in request.params:
+                if request.params['pathinput-save'] == 'true':
                     self.save_path_input(request.params, linkage_rule_id)
+        
+        if path_input_id:
+            self.path_input_delete(path_input_id)
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -435,16 +439,38 @@ class SilkController(BaseController):
         c.dest_restrictions_list = []
         restrictions = linkage_rule.restrictions
         
+        orig_path_inputs = []
+        dest_path_inputs = []
+        
+        #TODO: arreglar esto
         for restriction in restrictions:
             if restriction.resource_id == c.orig_resource['id']:
                 c.orig_restrictions_list.append({'id': restriction.id, 'resource_id': restriction.resource_id, 'variable_name': restriction.variable_name, 'property': restriction.property, 'class_name': restriction.class_name, 'linkage_rule_id': restriction.linkage_rule_id})
+                orig_path_inputs = restriction.path_inputs
+                c.orig_variable_name = restriction.variable_name
             elif restriction.resource_id == c.dest_resource['id']:
                 c.dest_restrictions_list.append({'id': restriction.id, 'resource_id': restriction.resource_id, 'variable_name': restriction.variable_name, 'property': restriction.property, 'class_name': restriction.class_name, 'linkage_rule_id': restriction.linkage_rule_id})
+                dest_path_inputs = restriction.path_inputs
+                c.dest_variable_name = restriction.variable_name
+                
+        c.orig_path_inputs_list = []
+        c.dest_path_inputs_list = []
+        
+        for path_input in orig_path_inputs:
+            log.info(path_input)
+            c.orig_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
+        
+        for path_input in dest_path_inputs:
+            c.dest_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         c.restrictions_control = False
+        c.path_inputs_control = False
         
-        if len(c.orig_restrictions_list) > 0 and len(c.dest_restrictions_list):
+        if len(c.orig_restrictions_list) > 0 and len(c.dest_restrictions_list) > 0:
             c.restrictions_control = True
+
+        if len(c.orig_path_inputs_list) > 0 and len(c.dest_path_inputs_list) > 0:
+            c.path_inputs_control = True
 
         return render('silk/read_linkage_rule.html')
         
@@ -523,6 +549,9 @@ class SilkController(BaseController):
         for restriction in restrictions:
             if restriction.resource_id == c.resource_dict['id']:
                 selected_restriction = restriction
+                
+        c.restriction_id = selected_restriction.id
+        c.variable_name =selected_restriction.variable_name
         
         query = 'SELECT DISTINCT ?s WHERE { ?s <%s> <%s> } LIMIT 1' % (selected_restriction.property, selected_restriction.class_name)
         params = urllib.urlencode({'query': query, 'format': 'application/json'})
@@ -551,4 +580,17 @@ class SilkController(BaseController):
 
 
     def save_path_input(self, params, linkage_rule_id):
-        path_input = PathInput()
+        log.info(request.params)
+        
+        path_input = PathInput(request.params['restriction-id'], request.params['input_path'])
+        restriction = model.Session.query(Restriction).filter_by(id=request.params['restriction-id']).first()
+        restriction.path_inputs.append(path_input)
+        model.Session.add(path_input)
+        model.Session.commit()
+
+    def path_input_delete(self, path_input_id):
+        
+        path_input = model.Session.query(PathInput).filter_by(id=path_input_id).first()
+        model.Session.delete(path_input)
+        model.Session.commit()
+        
