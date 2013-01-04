@@ -455,12 +455,16 @@ class SilkController(BaseController):
                 
         c.orig_path_inputs_list = []
         c.dest_path_inputs_list = []
+        c.transformation_list = []
         
         for path_input in orig_path_inputs:
-            log.info(path_input)
+            transformations = path_input.transformations
+            log.info('Transformation: %s' % transformations)
             c.orig_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         for path_input in dest_path_inputs:
+            transformations = path_input.transformations
+            log.info('Transformation: %s' % transformations)
             c.dest_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         c.restrictions_control = False
@@ -593,4 +597,32 @@ class SilkController(BaseController):
         path_input = model.Session.query(PathInput).filter_by(id=path_input_id).first()
         model.Session.delete(path_input)
         model.Session.commit()
+        
+    def transformation_edit(self, linkage_rule_id):
+        
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': linkage_rule.orig_dataset_id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+        
+        restrictions = linkage_rule.restrictions
+        
+        c.path_input_options = ''
+        
+        for restriction in linkage_rule.restrictions:
+            path_inputs = restriction.path_inputs
+            for path_input in path_inputs:
+                c.path_input_options += '<option value="%s">%s/%s</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
+                
+        log.info(c.path_input_options)
+        
+        c.form = render('silk/transformation_form.html')
+        return render('silk/transformation.html')
         

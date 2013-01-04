@@ -144,7 +144,16 @@
         
         <py:choose>
             <py:when test="c.path_inputs_control">
-                
+                <h3>Transformations <a class="btn btn-primary " href="/silk/edittransformation/${c.linkage_rule_dict['id']}">+</a></h3>
+                <div class="notes">
+                    <div class="notes-extract">
+                        <py:choose>
+                            <py:when test="len(c.transformation_list) == 0">
+                                No transformations set.
+                            </py:when>
+                        </py:choose>
+                    </div>
+                </div>
             </py:when>
         </py:choose>
   </div>
