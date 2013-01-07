@@ -459,29 +459,75 @@ class SilkController(BaseController):
         c.orig_path_inputs_list = []
         c.dest_path_inputs_list = []
         c.transformation_list = []
+        c.comparison_list = []
         
         for path_input in orig_path_inputs:
+            path_input_comparisons = path_input.comparisons
+            path_input_comparison_list = []
+            for comparison in path_input_comparisons:
+                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                c.comparison_list.append(comparison_dict)
+                
             transformations = path_input.transformations
             for transformation in transformations:
+                
+                transformation_comparisons = transformation.comparisons
+                for comparison in transformation_comparisons:
+                    comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                    if comparison_dict not in c.comparison_list:
+                        c.comparison_list.append(comparison_dict)
+                
                 parameters = transformation.parameters
                 transformation_dict = {'id': transformation.id, 'name': transformation.name}
+                #transformation_dict['comparisons'] = path_input_comparison_list
                 parameter_list = []
                 for parameter in parameters:
                     parameter_list.append({'id': parameter.id, 'name': parameter.name, 'value': parameter.value})
                 transformation_dict['parameters'] = parameter_list
+                
+                transformation_path_inputs = transformation.path_inputs
+                transformation_path_input_list = []
+                for path_input in transformation_path_inputs:
+                    path_input_dict = {'id': path_input.id, 'path_input': path_input.path_input, 'variable_name': c.orig_variable_name}
+                    transformation_path_input_list.append(path_input_dict)
+                transformation_dict['path_inputs'] = transformation_path_input_list
+                
                 c.transformation_list.append(transformation_dict)
             log.info('Transformation: %s' % transformations)
             c.orig_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         for path_input in dest_path_inputs:
+            path_input_comparisons = path_input.comparisons
+            path_input_comparison_list = []
+            for comparison in path_input_comparisons:
+                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                if comparison_dict not in c.comparison_list:
+                    c.comparison_list.append(comparison_dict)
+                
             transformations = path_input.transformations
             for transformation in transformations:
+                
+                transformation_comparisons = transformation.comparisons
+                for comparison in transformation_comparisons:
+                    comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                    if comparison_dict not in c.comparison_list:
+                        c.comparison_list.append(comparison_dict)
+                
                 transformation_dict = {'id': transformation.id, 'name': transformation.name}
+                #transformation_dict['comparisons'] = path_input_comparison_list
                 parameters = transformation.parameters
                 parameter_list = []
                 for parameter in parameters:
                     parameter_list.append({'id': parameter.id, 'name': parameter.name, 'value': parameter.value})
                 transformation_dict['parameters'] = parameter_list
+                
+                transformation_path_inputs = transformation.path_inputs
+                transformation_path_input_list = []
+                for path_input in transformation_path_inputs:
+                    path_input_dict = {'id': path_input.id, 'path_input': path_input.path_input, 'variable_name': c.dest_variable_name}
+                    transformation_path_input_list.append(path_input_dict)
+                transformation_dict['path_inputs'] = transformation_path_input_list
+                
                 if transformation_dict not in c.transformation_list:
                     c.transformation_list.append(transformation_dict)
             
@@ -707,3 +753,34 @@ class SilkController(BaseController):
             transformation.parameters.append(parameter)
 
         model.Session.commit()
+
+    def comparison_edit(self, linkage_rule_id):
+        
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': linkage_rule.orig_dataset_id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+        
+        restrictions = linkage_rule.restrictions
+        
+        c.option = ''
+        
+        for restriction in restrictions:
+            path_inputs = restriction.path_inputs
+            for path_input in path_inputs:
+                c.option += '<option value="path-%s">%s/&lt;%s&gt;</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
+                transformations = path_input.transformations
+                for transformation in transformations:
+                    c.option += '<option value="transformation-%s">Transformation #%s</option>' % (transformation.id, transformation.id)
+        
+        log.info(c.option)
+        
+        c.form = render('silk/comparison_form.html')
+        return render('silk/comparison.html')

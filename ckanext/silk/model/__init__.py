@@ -1,4 +1,4 @@
-from sqlalchemy import types, Column, Table, MetaData, UnicodeText, create_engine, Integer, ForeignKey
+from sqlalchemy import types, Column, Table, MetaData, UnicodeText, create_engine, Integer, ForeignKey, Float, Boolean
 import vdm.sqlalchemy
 from sqlalchemy.orm import mapper, relationship
 from pylons import config
@@ -85,9 +85,37 @@ transformation_path_inputs_association_table = Table('association_t_p', metadata
         Column('path_input_id', Integer, ForeignKey('path_input.id')),
 )
 
+comparison_table = Table('comparison', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('distance_measure', UnicodeText, nullable=False),
+        Column('treshold', Float, nullable=False),
+        Column('required', Boolean),
+        Column('weight', Integer),
+)
+
+comparison_transformation_association_table = Table('association_c_t', metadata,
+        Column('comparison_id', Integer, ForeignKey('comparison.id')),
+        Column('transformation_id', Integer, ForeignKey('transformation.id')),
+)
+
+comparison_path_input_association_table = Table('association_c_p', metadata,
+        Column('comparison_id', Integer, ForeignKey('comparison.id')),
+        Column('path_input_id', Integer, ForeignKey('path_input.id')),
+)
+
+class Comparison(object):
+    
+    def __init__(self, distance_measure, threshold, required, weight):
+        self.distance_measure = distance_measure
+        self.treshold = treshold
+        self.required = required
+        self.weight = weight
+
+
 mapper(PathInput, path_input_table)
 mapper(Parameter, parameter_table)
 mapper(Transformation, transformation_table, properties={'path_inputs': relationship(PathInput, secondary=transformation_path_inputs_association_table, backref='transformations'), 'parameters': relationship(Parameter, backref='transformation', order_by=parameter_table.c.id)})
+mapper(Comparison, comparison_table, properties={'transformations': relationship(Transformation, secondary=comparison_transformation_association_table, backref='comparisons'), 'path_inputs': relationship(PathInput, secondary=comparison_path_input_association_table, backref='comparisons')})
 mapper(Restriction, restriction_table, properties={'path_inputs': relationship(PathInput, backref='restriction', order_by=path_input_table.c.id)})
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
 

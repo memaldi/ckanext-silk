@@ -1,0 +1,21 @@
+<form 
+  id="comparison" 
+  action="/silk/readlinkagerule/${c.linkage_rule_dict['orig_dataset_id']}/${c.linkage_rule_dict['id']}" 
+  method="post"
+  class="form-horizontal"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  
+  <h2>Comparisons for ${c.pkg_dict['title']}</h2>
+  
+  <div class="control-group">
+    <label class="control-label" for="input-1">Input #1</label>
+    <div class="controls">
+        <select>
+            <option value="path-1">?a/&lt;http://www.geonames.org/ontology#parentADM1&gt;</option><option value="transformation-1">Transformation #1</option>
+        </select>
+    </div>
+  </div>
+  
+</form>

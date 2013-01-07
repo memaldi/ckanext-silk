@@ -159,12 +159,36 @@
                                             <dd>#${transformation['id']}</dd>
                                             <dt>Transformation</dt>
                                             <dd>${transformation['name']}</dd>
+                                            <py:for each="path_input in transformation['path_inputs']">
+                                                <dt>Path Input</dt>
+                                                <dd>${path_input['variable_name']}/&lt;${path_input['path_input']}&gt;</dd>
+                                            </py:for>
                                             <py:for each="parameter in transformation['parameters']">
                                                 <dt>${parameter.name}</dt>
                                                 <dd>${parameter.value}</dd>
                                             </py:for>
                                         </dl>
                                     </py:for>
+                                </div>
+                            </py:otherwise>
+                        </py:choose>
+                    </div>
+                </div>
+            </py:when>
+        </py:choose>
+        
+        <py:choose>
+            <py:when test="c.path_inputs_control">
+                <h3>Comparisons <a class="btn btn-primary " href="/silk/editcomparison/${c.linkage_rule_dict['id']}">+</a></h3>
+                <div class="notes">
+                    <div class="notes-extract">
+                        <py:choose>
+                            <py:when test="len(c.comparison_list) == 0">
+                                No comparisons set.
+                            </py:when>
+                            <py:otherwise>
+                                <div class="quick-info">
+                                    
                                 </div>
                             </py:otherwise>
                         </py:choose>
