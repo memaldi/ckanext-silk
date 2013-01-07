@@ -9,7 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
-from ckanext.silk.model import LinkageRule, Restriction, PathInput
+from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter
 
 log = getLogger(__name__)
 
@@ -391,8 +391,8 @@ class SilkController(BaseController):
     def resource_read(self, id, linkage_rule_id, path_input_id=None):
         
         log.info('Params: %s' % request.params)
-        log.info(request)
         
+        #TODO: Seguro que hay una manera mas elegante
         if len(request.params) > 0:
             if 'restriction-save' in request.params:
                 if request.params['restriction-save'] == 'true':
@@ -400,7 +400,10 @@ class SilkController(BaseController):
             elif 'pathinput-save' in request.params:
                 if request.params['pathinput-save'] == 'true':
                     self.save_path_input(request.params, linkage_rule_id)
-        
+            elif 'transformation-save' in request.params:
+                if request.params['transformation-save'] == 'true':
+                    self.save_transformation(request.params, linkage_rule_id)
+                    
         if path_input_id:
             self.path_input_delete(path_input_id)
         
@@ -459,13 +462,33 @@ class SilkController(BaseController):
         
         for path_input in orig_path_inputs:
             transformations = path_input.transformations
+            for transformation in transformations:
+                parameters = transformation.parameters
+                transformation_dict = {'id': transformation.id, 'name': transformation.name}
+                parameter_list = []
+                for parameter in parameters:
+                    parameter_list.append({'id': parameter.id, 'name': parameter.name, 'value': parameter.value})
+                transformation_dict['parameters'] = parameter_list
+                c.transformation_list.append(transformation_dict)
             log.info('Transformation: %s' % transformations)
             c.orig_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         for path_input in dest_path_inputs:
             transformations = path_input.transformations
+            for transformation in transformations:
+                transformation_dict = {'id': transformation.id, 'name': transformation.name}
+                parameters = transformation.parameters
+                parameter_list = []
+                for parameter in parameters:
+                    parameter_list.append({'id': parameter.id, 'name': parameter.name, 'value': parameter.value})
+                transformation_dict['parameters'] = parameter_list
+                if transformation_dict not in c.transformation_list:
+                    c.transformation_list.append(transformation_dict)
+            
             log.info('Transformation: %s' % transformations)
             c.dest_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
+        
+        log.info(c.transformation_list)
         
         c.restrictions_control = False
         c.path_inputs_control = False
@@ -474,7 +497,7 @@ class SilkController(BaseController):
             c.restrictions_control = True
 
         if len(c.orig_path_inputs_list) > 0 and len(c.dest_path_inputs_list) > 0:
-            c.path_inputs_control = True
+            c.path_inputs_control = True        
 
         return render('silk/read_linkage_rule.html')
         
@@ -620,9 +643,67 @@ class SilkController(BaseController):
             path_inputs = restriction.path_inputs
             for path_input in path_inputs:
                 c.path_input_options += '<option value="%s">%s/%s</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
-                
-        log.info(c.path_input_options)
-        
+                        
         c.form = render('silk/transformation_form.html')
         return render('silk/transformation.html')
         
+    def save_transformation(self, params, linkage_rule_id):
+        
+        transformation_id = params['transformation_id']
+        transformation = Transformation(transformation_id)
+        
+        model.Session.add(transformation)
+        model.Session.commit()
+        
+        input_1_id = params['input_1_id']
+        path_input_1 = model.Session.query(PathInput).filter_by(id=input_1_id).first()
+        
+        model.Session.add(path_input_1)
+        
+        transformation.path_inputs.append(path_input_1)
+        
+        if transformation_id == 'concatenate':
+            input_2_id = params['input_2_id']
+            path_input_2 = model.Session.query(PathInput).filter_by(id=input_2_id).first()
+            model.Session.add(path_input_2)
+            transformation.path_inputs.append(path_2_id)
+                
+        if transformation_id == 'capitalize':
+            parameter = Parameter('allWords', params['allWords'], transformation.id)
+            model.Session.add(parameter)
+            transformation.parameters.append(parameter)
+        elif transformation_id == 'replace':
+            parameter_1 = Parameter('search', params['search'], transformation.id)
+            parameter_2 = Parameter('replace', params['replace'], transformation.id)
+            model.Session.add(parameter_1)
+            model.Session.add(parameter_2)
+            transformation.parameters.append(parameter_1)
+            transformation.parameters.append(parameter_2)
+        elif transformation_id == 'regexReplace':
+            parameter_1 = Parameter('regex', params['regex'], transformation.id)
+            parameter_2 = Parameter('replace', params['replace'], transformation.id)
+            model.Session.add(parameter_1)
+            model.Session.add(parameter_2)
+            transformation.parameters.append(parameter_1)
+            transformation.parameters.append(parameter_2)
+        elif transformation_id == 'logarithm':
+            parameter = Parameter('base', params['base'], transformation.id)
+            model.Session.add(parameter)
+            transformation.parameters.append(parameter)
+        elif transformation_id == 'convert':
+            parameter_1 = Parameter('sourceCharset', params['sourceCharset'], transformation.id)
+            parameter_2 = Parameter('targetCharset', params['targetCharset'], transformation.id)
+            model.Session.add(parameter_1)
+            model.Session.add(parameter_2)
+            transformation.parameters.append(parameter_1)
+            transformation.parameters.append(parameter_2)
+        elif transformation_id == 'tokenize':
+            parameter = Parameter('regex', params['regex'], transformation.id)
+            model.Session.add(parameter)
+            transformation.parameters.append(parameter)
+        elif transformation_id == 'removeValues':
+            parameter = Parameter('blacklist', params['blacklist'], transformation.id)
+            model.Session.add(parameter)
+            transformation.parameters.append(parameter)
+
+        model.Session.commit()

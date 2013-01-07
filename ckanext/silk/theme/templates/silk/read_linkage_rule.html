@@ -151,6 +151,22 @@
                             <py:when test="len(c.transformation_list) == 0">
                                 No transformations set.
                             </py:when>
+                            <py:otherwise>
+                                <div class="quick-info">
+                                    <py:for each="transformation in c.transformation_list">
+                                        <dl>
+                                            <dt>Id</dt>
+                                            <dd>#${transformation['id']}</dd>
+                                            <dt>Transformation</dt>
+                                            <dd>${transformation['name']}</dd>
+                                            <py:for each="parameter in transformation['parameters']">
+                                                <dt>${parameter.name}</dt>
+                                                <dd>${parameter.value}</dd>
+                                            </py:for>
+                                        </dl>
+                                    </py:for>
+                                </div>
+                            </py:otherwise>
                         </py:choose>
                     </div>
                 </div>
