@@ -14,6 +14,7 @@ linkage_rule_table = Table('linkage_rule', metadata,
         Column('orig_resource_id', UnicodeText, nullable=False),
         Column('dest_dataset_id', UnicodeText, nullable=False),
         Column('dest_resource_id', UnicodeText, nullable=False),
+        Column('aggregation', UnicodeText),
 )
 
 class LinkageRule(object):
@@ -124,7 +125,6 @@ class ComparisonParameters(object):
         self.name = name
         self.value = value
         self.comparison_id = comparison_id
-
 
 mapper(PathInput, path_input_table)
 mapper(Parameter, parameter_table)

@@ -213,6 +213,39 @@
                 </div>
             </py:when>
         </py:choose>
+        
+        <py:choose>
+            <py:when test="len(c.comparison_list) &gt; 1">
+                <h3>Aggregations <a class="btn btn-primary " href="/silk/editaggregation/${c.linkage_rule_dict['id']}">+</a></h3>
+                <div class="notes">
+                    <div class="notes-extract">
+                        <py:choose>
+                            <py:when test="len(c.aggregation_list) == 0">
+                                No aggregation set
+                            </py:when>
+                            <py:otherwise>
+                                <div class="quick-info">
+                                    <py:for each="aggregation in c.aggregation_list">
+                                        <dl>
+                                            <dt>Aggregation</dt>
+                                            <dd>${aggregation}</dd>
+                                        </dl>
+                                    </py:for>
+                                </div>
+                            </py:otherwise>
+                        </py:choose>
+                    </div>
+                </div>
+            </py:when>
+        </py:choose>
+        
+        <py:choose>
+            <py:when test="c.launch_control">
+                <div class="form-actions">
+                    <a href="/silk/launch/${c.linkage_rule_dict['id']}">Launch!</a>
+                </div>
+            </py:when>
+        </py:choose>
   </div>
   
     <xi:include href="layout.html"/>

@@ -406,6 +406,9 @@ class SilkController(BaseController):
             elif 'comparison-save' in request.params:
                 if request.params['comparison-save'] == 'true':
                     self.save_comparison(request.params, linkage_rule_id)
+            elif 'aggregation-save' in request.params:
+                if request.params['aggregation-save'] == 'true':
+                    self.save_aggregation(request.params, linkage_rule_id)
                     
         if path_input_id:
             self.path_input_delete(path_input_id)
@@ -536,14 +539,38 @@ class SilkController(BaseController):
                 if transformation_dict not in c.transformation_list:
                     c.transformation_list.append(transformation_dict)
             
-            log.info('Transformation: %s' % transformations)
+            #log.info('Transformation: %s' % transformations)
             c.dest_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
-        log.info(c.transformation_list)
+        new_comparison_list = []
+        for comparison in c.comparison_list:
+            log.info('Comparison: %s' % comparison)
+            comparison_object = model.Session.query(Comparison).filter_by(id=comparison['id']).first()
+            params = comparison_object.parameters
+            param_list = []
+            for param in params:
+                 param_dict = {'id': param.id, 'name': param.name, 'value': param.value}
+                 param_list.append(param_dict)
+            comparison['params'] = param_list
+            new_comparison_list.append(comparison)
+            
+        
+        c.comparison_list = new_comparison_list
+        #log.info(c.transformation_list)
+        
+        c.aggregation_list = []
+        
+        if linkage_rule.aggregation != None:
+            c.aggregation_list.append(linkage_rule.aggregation)
         
         c.restrictions_control = False
         c.path_inputs_control = False
         
+        c.launch_control = False
+        
+        if (len(c.comparison_list) > 0 and len(c.comparison_list) < 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
+            c.launch_control = True
+            
         if len(c.orig_restrictions_list) > 0 and len(c.dest_restrictions_list) > 0:
             c.restrictions_control = True
 
@@ -835,3 +862,28 @@ class SilkController(BaseController):
             comparison.parameters.append(param)
 
         model.Session.commit()
+
+    def aggregation_edit(self, linkage_rule_id):
+        
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': linkage_rule.orig_dataset_id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+        
+        c.form = render('silk/aggregation_form.html')
+        return render('silk/aggregation.html')
+        
+    def save_aggregation(self, params, linkage_rule_id):
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        linkage_rule.aggregation = params['aggregation']
+        model.Session.commit()
+        
+    def launch(self, linkage_rule_id):
+        
