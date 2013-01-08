@@ -88,7 +88,7 @@ transformation_path_inputs_association_table = Table('association_t_p', metadata
 comparison_table = Table('comparison', metadata,
         Column('id', Integer, primary_key=True),
         Column('distance_measure', UnicodeText, nullable=False),
-        Column('treshold', Float, nullable=False),
+        Column('threshold', Float, nullable=False),
         Column('required', Boolean),
         Column('weight', Integer),
 )
@@ -107,15 +107,30 @@ class Comparison(object):
     
     def __init__(self, distance_measure, threshold, required, weight):
         self.distance_measure = distance_measure
-        self.treshold = treshold
+        self.threshold = threshold
         self.required = required
         self.weight = weight
+        
+comparison_parameters_table = Table('comparison_parameters', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('name', UnicodeText, nullable=False),
+    Column('value', UnicodeText, nullable=False),
+    Column('comparison_id', Integer, ForeignKey('comparison.id')),
+)
+        
+class ComparisonParameters(object):
+
+    def __init__(self, name, value, comparison_id):
+        self.name = name
+        self.value = value
+        self.comparison_id = comparison_id
 
 
 mapper(PathInput, path_input_table)
 mapper(Parameter, parameter_table)
+mapper(ComparisonParameters, comparison_parameters_table)
 mapper(Transformation, transformation_table, properties={'path_inputs': relationship(PathInput, secondary=transformation_path_inputs_association_table, backref='transformations'), 'parameters': relationship(Parameter, backref='transformation', order_by=parameter_table.c.id)})
-mapper(Comparison, comparison_table, properties={'transformations': relationship(Transformation, secondary=comparison_transformation_association_table, backref='comparisons'), 'path_inputs': relationship(PathInput, secondary=comparison_path_input_association_table, backref='comparisons')})
+mapper(Comparison, comparison_table, properties={'transformations': relationship(Transformation, secondary=comparison_transformation_association_table, backref='comparisons'), 'path_inputs': relationship(PathInput, secondary=comparison_path_input_association_table, backref='comparisons'), 'parameters': relationship(ComparisonParameters, backref='comparison', order_by=comparison_parameters_table.c.id)})
 mapper(Restriction, restriction_table, properties={'path_inputs': relationship(PathInput, backref='restriction', order_by=path_input_table.c.id)})
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
 

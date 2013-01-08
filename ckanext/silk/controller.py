@@ -9,7 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
-from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter
+from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter, Comparison, ComparisonParameters
 
 log = getLogger(__name__)
 
@@ -403,6 +403,9 @@ class SilkController(BaseController):
             elif 'transformation-save' in request.params:
                 if request.params['transformation-save'] == 'true':
                     self.save_transformation(request.params, linkage_rule_id)
+            elif 'comparison-save' in request.params:
+                if request.params['comparison-save'] == 'true':
+                    self.save_comparison(request.params, linkage_rule_id)
                     
         if path_input_id:
             self.path_input_delete(path_input_id)
@@ -465,7 +468,7 @@ class SilkController(BaseController):
             path_input_comparisons = path_input.comparisons
             path_input_comparison_list = []
             for comparison in path_input_comparisons:
-                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'threshold': comparison.threshold, 'required': comparison.required, 'weight': comparison.weight}
                 c.comparison_list.append(comparison_dict)
                 
             transformations = path_input.transformations
@@ -473,7 +476,7 @@ class SilkController(BaseController):
                 
                 transformation_comparisons = transformation.comparisons
                 for comparison in transformation_comparisons:
-                    comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                    comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'threshold': comparison.threshold, 'required': comparison.required, 'weight': comparison.weight}
                     if comparison_dict not in c.comparison_list:
                         c.comparison_list.append(comparison_dict)
                 
@@ -493,7 +496,9 @@ class SilkController(BaseController):
                 transformation_dict['path_inputs'] = transformation_path_input_list
                 
                 c.transformation_list.append(transformation_dict)
-            log.info('Transformation: %s' % transformations)
+                
+            #log.info('Transformation: %s' % transformations)
+            log.info('Comparisons: %s' % c.comparison_list)
             c.orig_path_inputs_list.append({'id': path_input.id, 'restriction_id': path_input.restriction_id, 'path_input': path_input.path_input})
         
         for path_input in dest_path_inputs:
@@ -770,17 +775,63 @@ class SilkController(BaseController):
         
         restrictions = linkage_rule.restrictions
         
-        c.option = ''
+        c.path_inputs = []
+        c.transformations = []
         
         for restriction in restrictions:
             path_inputs = restriction.path_inputs
             for path_input in path_inputs:
-                c.option += '<option value="path-%s">%s/&lt;%s&gt;</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
+                #c.option += '<option value="path-%s">%s/%s</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
+                c.path_inputs.append({'id': path_input.id, 'variable_name': restriction.variable_name, 'path_input': path_input.path_input})
                 transformations = path_input.transformations
                 for transformation in transformations:
-                    c.option += '<option value="transformation-%s">Transformation #%s</option>' % (transformation.id, transformation.id)
+                    #c.option += '<option value="transformation-%s">Transformation #%s</option>' % (transformation.id, transformation.id)
+                    c.transformations.append({'id': transformation.id})
         
         log.info(c.option)
         
         c.form = render('silk/comparison_form.html')
         return render('silk/comparison.html')
+
+    def save_comparison(self, params, linkage_rule_id):
+        
+        required = False
+        if 'required' in params:
+            required = True
+            
+        comparison = Comparison(params['distanceMeasure'], params['threshold'], required, params['weight'])
+        model.Session.add(comparison)
+        
+        input_1 = None
+        input_2 = None
+        
+        input_type = params['input_1'].split('-')[0]
+        if input_type == 'path':
+            input_1 = model.Session.query(PathInput).filter_by(id=params['input_1'].split('-')[1]).first()
+        else:
+            input_1 = model.Session.query(Transformation).filter_by(id=params['input_1'].split('-')[1]).first()
+        
+        input_type = params['input_2'].split('-')[0]
+        if input_type == 'path':
+            input_2 = model.Session.query(PathInput).filter_by(id=params['input_2'].split('-')[1]).first()
+        else:
+            input_2 = model.Session.query(Transformation).filter_by(id=params['input_2'].split('-')[1]).first()
+
+        input_1.comparisons.append(comparison)
+        input_2.comparisons.append(comparison)
+        
+        model.Session.commit()
+        
+        if (params['distanceMeasure'] == 'num'):
+            param_1 = ComparisonParameters('minValue', params['minValue'], comparison.id)
+            param_2 = ComparisonParameters('maxValue', params['maxValue'], comparison.id)
+            model.Session.add(param_1)
+            model.Session.add(param_2)
+            comparison.parameters.append(param_1)
+            comparison.parameters.append(param_2)
+        elif (params['distanceMeasure'] == 'wgs84'):
+            param = ComparisonParameters('unit', params['unit'], comparison.id)
+            model.Session.add(param)
+            comparison.parameters.append(param)
+
+        model.Session.commit()

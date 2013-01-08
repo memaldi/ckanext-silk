@@ -7,15 +7,163 @@
   xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
   
+  <script language="JavaScript">
+    function comparison_params(element) {
+        comparison = element.value;
+        desc = '';
+        params = '';
+        
+        if (comparison == 'levenshteinDistance') {
+            desc = 'Levenshtein distance. The minimum number of edits needed to transform one string into the other, with the allowable edit operations being insertion, deletion, or substitution of a single character';
+            
+        } else if (comparison == 'levenshtein') {
+            desc = 'The levensthein distance normalized to the interval [0,1]';
+            
+        } else if (comparison == 'jaro') {
+            desc = 'Jaro distance metric. Simple distance metric originally developed to compare person names.';
+            
+        } else if (comparison == 'jaroWinkler') {
+            desc = 'Jaro-Winkler distance measure. The Jaro–Winkler distance metric is designed and best suited for short strings such as person names';
+            
+        } else if (comparison == 'equality') {
+            desc = '0 if strings are equal, 1 otherwise.';
+            
+        } else if (comparison == 'inequality') {
+            desc = '1 if strings are equal, 0 otherwise.';
+            
+        } else if (comparison == 'jaccard') {
+            desc = 'Jaccard distance coefficient.';
+            
+        } else if (comparison == 'dice') {
+            desc = 'Dice distance coefficient.';
+            
+        } else if (comparison == 'softjaccard') {
+            desc = 'Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of <i>maxDistance</i> are considered equivalent.';
+            
+        } else if (comparison == 'num') {
+            desc = 'Computes the numeric difference between two numbers. Parameters: <i>minValue</i>, <i>maxValue</i> - The minimum and maximum values which occur in the datasource.';
+            
+            params = '<div class="control-group">';
+            params += '<label class="control-label" for="minValue">minValue</label>';
+            params += '<div class="controls">';
+            params += '<input type="text" name="minValue"></input>';
+            params += '</div></div>';
+
+            params += '<div class="control-group">';
+            params += '<label class="control-label" for="maxValue">maxValue</label>';
+            params += '<div class="controls">';
+            params += '<input type="text" name="maxValue"></input>';
+            params += '</div></div>';
+            
+        } else if (comparison == 'date') {
+            desc = 'Computes the distance between two dates ("YYYY-MM-DD" format). Returns the difference in days';
+            
+        } else if (comparison == 'dateTime') {
+            desc = 'Computes the distance between two date time values (<i>xsd:dateTime</i> format). Returns the difference in seconds';
+            
+        } else if (comparison == 'wgs84') {
+            desc = 'Computes the geographical distance between two points. Parameters: <i>unit</i> - The unit in which the distance is measured. Allowed values: <i>meter</i> or <i>m</i> (default), <i>kilometer</i> or <i>km</i>.'
+            
+            params = '<div class="control-group">';
+            params += '<label class="control-label" for="unit">unit</label>';
+            params += '<div class="controls">';
+            params += '<input type="text" name="unit" value="m"></input>';
+            params += '</div></div>';
+        }
+        
+        document.getElementById('comparison-desc').innerHTML = desc;
+        document.getElementById('comparison-params').innerHTML = params;
+    }
+  
+  </script>
+  
   <h2>Comparisons for ${c.pkg_dict['title']}</h2>
   
   <div class="control-group">
     <label class="control-label" for="input-1">Input #1</label>
     <div class="controls">
-        <select>
-            <option value="path-1">?a/&lt;http://www.geonames.org/ontology#parentADM1&gt;</option><option value="transformation-1">Transformation #1</option>
+        <select id="input_1" name="input_1">
+            <py:for each="path_input in c.path_inputs">
+                <option value="path-${path_input['id']}">${path_input['variable_name']}/&lt;${path_input['path_input']}&gt;</option>
+            </py:for>
+            <py:for each="transformation in c.transformations">
+                <option value="transformation-${transformation['id']}">Transformation #${transformation['id']}</option>
+            </py:for>
         </select>
     </div>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="input-2">Input #2</label>
+    <div class="controls">
+        <select id="input_2" name="input_2">
+            <py:for each="path_input in c.path_inputs">
+                <option value="path-${path_input['id']}">${path_input['variable_name']}/&lt;${path_input['path_input']}&gt;</option>
+            </py:for>
+            <py:for each="transformation in c.transformations">
+                <option value="transformation-${transformation['id']}">Transformation #${transformation['id']}</option>
+            </py:for>
+        </select>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="distanceMeasure">Distance Measure</label>
+    <div class="controls">
+        <select id="distanceMeasure" name="distanceMeasure" onchange="javascript:comparison_params(this)">
+            <option value="None" selected="selected"></option>
+            <option value="levenshteinDistance">Levenshtein distance</option>
+            <option value="levenshtein">Normalized Levenshtein</option>
+            <option value="jaro">Jaro distance</option>
+            <option value="jaroWinkler">Jaro-Winkler distance</option>
+            <option value="equality">Equality</option>
+            <option value="inequality">Inequality</option>
+            <option value="jaccard">Jaccard distance</option>
+            <option value="dice">Dice distance</option>
+            <option value="softjaccard">Soft Jaccard distance</option>
+            <option value="num">Numerical distance</option>
+            <option value="date">Date distance</option>
+            <option value="dateTime">DateTime distance</option>
+            <option value="wgs84">Geographical distance</option>
+        </select>
+        <p id="comparison-desc">
+            
+        </p>
+    </div>
+  </div>
+  
+  <div id="comparison-params">
+  
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="threshold">Threshold</label>
+    <div class="controls">
+        <input type="text" name="threshold" value="0.0"></input>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="required">Required (optional)</label>
+    <div class="controls">
+        <input type="checkbox" name="required"></input>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label class="control-label" for="weight">Weight (optional)</label>
+    <div class="controls">
+        <input type="text" name="weight" value="0"></input>
+    </div>
+  </div>
+  
+  <div class="control-group" id="hidden-fields">
+    <input type="hidden" name="dataset_id" value="${c.pkg['name']}"/>
+    <input type="hidden" name="comparison-save" value="true"/>
+  </div>
+    
+  <div class="form-actions">
+    <input id="save" name="save" type="submit" class="btn btn-primary" value="Save" />
   </div>
   
 </form>

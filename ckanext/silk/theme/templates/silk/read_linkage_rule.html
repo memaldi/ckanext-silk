@@ -188,7 +188,24 @@
                             </py:when>
                             <py:otherwise>
                                 <div class="quick-info">
-                                    
+                                    <py:for each="comparison in c.comparison_list">
+                                        <dl>
+                                            <dt>Id</dt>
+                                            <dd>#${comparison['id']}</dd>
+                                            <dt>Distance</dt>
+                                            <dd>${comparison['distance_measure']}</dd>
+                                            <dt>Threshold</dt>
+                                            <dd>${comparison['threshold']}</dd>
+                                            <py:for each="param in comparison['params']">
+                                                <dt>${param['name']}</dt>
+                                                <dd>${param['value']}</dd>
+                                            </py:for>
+                                            <dt>Weight</dt>
+                                            <dd>${comparison['weight']}</dd>
+                                            <dt>Required</dt>
+                                            <dd>${comparison['required']}</dd>
+                                        </dl>
+                                    </py:for>
                                 </div>
                             </py:otherwise>
                         </py:choose>
