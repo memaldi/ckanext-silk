@@ -3,6 +3,9 @@ import vdm.sqlalchemy
 from sqlalchemy.orm import mapper, relationship
 from pylons import config
 import sqlalchemy
+from logging import getLogger
+
+log = getLogger(__name__)
 
 metadata = MetaData()
 
@@ -14,17 +17,19 @@ linkage_rule_table = Table('linkage_rule', metadata,
         Column('orig_resource_id', UnicodeText, nullable=False),
         Column('dest_dataset_id', UnicodeText, nullable=False),
         Column('dest_resource_id', UnicodeText, nullable=False),
+        Column('link_type', UnicodeText, nullable=False),
         Column('aggregation', UnicodeText),
 )
 
 class LinkageRule(object):
     
-    def __init__(self, name, orig_dataset_id, orig_resource_id, dest_dataset_id, dest_resource_id):
+    def __init__(self, name, orig_dataset_id, orig_resource_id, dest_dataset_id, dest_resource_id, link_type):
         self.name = name
         self.orig_dataset_id = orig_dataset_id
         self.orig_resource_id = orig_resource_id
         self.dest_dataset_id = dest_dataset_id
         self.dest_resource_id = dest_resource_id
+        self.link_type = link_type
 
 
 restriction_table = Table('restriction', metadata,
@@ -111,6 +116,7 @@ class Comparison(object):
         self.threshold = threshold
         self.required = required
         self.weight = weight
+            
         
 comparison_parameters_table = Table('comparison_parameters', metadata,
     Column('id', Integer, primary_key=True),

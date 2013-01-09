@@ -10,10 +10,13 @@ from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
 from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter, Comparison, ComparisonParameters
+from xml.dom.minidom import Document
 
 log = getLogger(__name__)
 
 class SilkController(BaseController):
+          
+    prefixes = {}
           
     def __before__(self, action, **env):
         BaseController.__before__(self, action, **env)
@@ -305,8 +308,8 @@ class SilkController(BaseController):
     
     def save(self, id, params):
         session = model.Session
-        log.info(params['dest_package_id'])
-        linkage_rule = LinkageRule(params['new_linkage_rule_name'], id, params['resource_id'], params['dest_package_id'], params['dest_resource_id'])
+        log.info(params)
+        linkage_rule = LinkageRule(params['new_linkage_rule_name'], id, params['resource_id'], params['dest_package_id'], params['dest_resource_id'], params['link_type'])
         session.add(linkage_rule)
         session.commit()
         pass
@@ -568,7 +571,7 @@ class SilkController(BaseController):
         
         c.launch_control = False
         
-        if (len(c.comparison_list) > 0 and len(c.comparison_list) < 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
+        if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
             
         if len(c.orig_restrictions_list) > 0 and len(c.dest_restrictions_list) > 0:
@@ -886,4 +889,197 @@ class SilkController(BaseController):
         model.Session.commit()
         
     def launch(self, linkage_rule_id):
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+        
+        data_dict = {'id': linkage_rule.orig_resource_id}
+        orig_resource = ckan.logic.get_action('resource_show')(context, data_dict)
+        data_dict = {'id': linkage_rule.dest_resource_id}
+        dest_resource = ckan.logic.get_action('resource_show')(context, data_dict)
+        
+        orig_restriction = model.Session.query(Restriction).filter_by(resource_id=orig_resource['id'], linkage_rule_id=linkage_rule.id).first()
+        dest_restriction = model.Session.query(Restriction).filter_by(resource_id=dest_resource['id'], linkage_rule_id=linkage_rule.id).first()
+        
+        orig_path_inputs = orig_restriction.path_inputs
+        dest_path_inputs = dest_restriction.path_inputs
+        
+        orig_transformations = []
+        
+        for path_input in orig_path_inputs:
+            transformations = path_input.transformations
+            for transformation in transformations:
+                if transformation not in orig_transformations:
+                    orig_transformations.append(transformation)
+        
+        dest_transformations = []
+        
+        for path_input in dest_path_inputs:
+            transformations = path_input.transformations
+            for transformation in transformations:
+                if transformation not in dest_transformations:
+                    dest_transformations.append(transformation)
+        
+        comparison_list = []
+        #TODO: mejorar!
+        for path_input in orig_path_inputs:
+            comparisons = path_input.comparisons
+            for comparison in comparisons:
+                comparison_list.append(comparison)
+        for path_input in dest_path_inputs:
+            comparisons = path_input.comparisons
+            for comparison in comparisons:
+                comparison_list.append(comparison)
+        for transformation in orig_transformations:
+            comparisons = transformation.comparisons
+            for comparison in comparisons:
+                comparison_list.append(comparison)
+        for transformation in dest_transformations:
+            comparisons = transformation.comparisons
+            for comparison in comparisons:
+                comparison_list.append(comparison)
+            
+        comparison_dict = {}
+        for comparison in comparison_list:
+            log.info(comparison)
+            comparison_dict[comparison.id] = comparison
+            
+        log.info(comparison_dict)
+            
+        document = Document()
+        silk = document.createElement('Silk') 
+        
+        prefixesNode = document.createElement('Prefixes')
+        
+        
+        datasources = document.createElement('DataSources')
+        
+        orig_datasource = document.createElement('DataSource')
+        orig_datasource.setAttribute('id', linkage_rule.orig_dataset_id)
+        orig_datasource.setAttribute('type', 'sparqlEndpoint')
+        param = document.createElement('Param')
+        param.setAttribute('name', 'endpointURI')
+        param.setAttribute('value', orig_resource['url'])
+        orig_datasource.appendChild(param)
+        
+        dest_datasource = document.createElement('DataSource')
+        dest_datasource.setAttribute('id', linkage_rule.dest_dataset_id)
+        dest_datasource.setAttribute('type', 'sparqlEndpoint')
+        param = document.createElement('Param')
+        param.setAttribute('name', 'endpointURI')
+        param.setAttribute('value', dest_resource['url'])
+        dest_datasource.appendChild(param)
+        
+        datasources.appendChild(orig_datasource)
+        datasources.appendChild(dest_datasource)
+        
+        interlinks = document.createElement('Interlinks')
+        
+        interlink = document.createElement('Interlink')
+        interlink.setAttribute('id', linkage_rule.name)
+        
+        linktype = document.createElement('LinkType')
+        text = document.createTextNode(self.get_prefix(linkage_rule.link_type))
+        linktype.appendChild(text)
+        
+        sourcedataset = document.createElement('SourceDataset')
+        sourcedataset.setAttribute('dataSource', linkage_rule.orig_dataset_id)
+        sourcedataset.setAttribute('var', orig_restriction.variable_name.lstrip('?'))
+        
+        restricto = document.createElement('RestrictTo')
+        text = document.createTextNode('%s %s %s' % (orig_restriction.variable_name, self.get_prefix(orig_restriction.property), self.get_prefix(orig_restriction.class_name)))
+        restricto.appendChild(text)
+        sourcedataset.appendChild(restricto)
+        
+        targetdataset = document.createElement('TargetDataset')
+        targetdataset.setAttribute('dataSource', linkage_rule.dest_dataset_id)
+        targetdataset.setAttribute('var', dest_restriction.variable_name.lstrip('?'))
+        
+        restricto = document.createElement('RestrictTo')
+        text = document.createTextNode('%s %s %s' % (dest_restriction.variable_name, self.get_prefix(dest_restriction.property), self.get_prefix(dest_restriction.class_name)))
+        restricto.appendChild(text)
+        targetdataset.appendChild(restricto)
+        
+        interlink.appendChild(linktype)
+        interlink.appendChild(sourcedataset)
+        interlink.appendChild(targetdataset)
+        
+        
+        
+        linkagerule = document.createElement('LinkageRule')
+                
+        for key in comparison_dict.keys():
+            comparison = comparison_dict[key]
+            compare = document.createElement('Compare')
+            compare.setAttribute('metric', comparison.distance_measure)
+            path_inputs = comparison.path_inputs
+            for path_input in path_inputs:
+                input = document.createElement('Input')
+                prefixed_path = self.get_prefix(path_input.path_input)
+                input.setAttribute('path', '%s/%s' % (path_input.restriction.variable_name, prefixed_path))
+                compare.appendChild(input)
+            for transformation in comparison.transformations:
+                for path_input in transformation.path_inputs:
+                    input = document.createElement('Input')
+                    prefixed_path = self.get_prefix(path_input.path_input)
+                    input.setAttribute('path', '%s/%s' % (path_input.restriction.variable_name, prefixed_path))
+                    transforminput = document.createElement('TransformInput')
+                    transforminput.setAttribute('function', transformation.name)
+                    transforminput.appendChild(input)
+                    for parameter in transformation.parameters:
+                        param = document.createElement('Param')
+                        param.setAttribute('name', parameter.name)
+                        param.setAttribute('value', parameter.value)
+                        transforminput.appendChild(param)
+                    compare.appendChild(transforminput)
+                    
+            linkagerule.appendChild(compare)
+        
+        filter = document.createElement('Filter')
+            
+        interlink.appendChild(linkagerule)
+        interlink.appendChild(filter)
+        
+        interlinks.appendChild(interlink)
+        
+        
+        log.info(self.prefixes)
+        for key in self.prefixes.keys():
+            
+            namespace = self.prefixes[key]
+            prefix = document.createElement('Prefix')
+            prefix.setAttribute('id', key)
+            prefix.setAttribute('namespace', namespace)
+            prefixesNode.appendChild(prefix)
+        
+        
+        silk.appendChild(prefixesNode)
+        silk.appendChild(datasources)
+        silk.appendChild(interlinks)
+        document.appendChild(silk)
+        
+        log.info(document.toprettyxml())
+
+    def get_prefix(self, uri):
+        if '#' in uri:
+            namespace = uri.split('#')[0] + '#'
+            postfix = uri.split('#')[1]
+        else:
+            splitted_uri = uri.split('/')
+            log.info(splitted_uri)
+            namespace = ''
+            for i in range(0, len(splitted_uri) - 1):
+                namespace += splitted_uri[i] + '/'
+            postfix = splitted_uri[len(splitted_uri) - 1]
+        
+                
+        params = urllib.urlencode({'uri': namespace, 'format': 'json'})
+        f = urllib.urlopen('http://prefix.cc/reverse?%s' % params)
+        json_result = json.loads('[%s]' % f.read())
+        for key in json_result[0].keys():
+            prefix = key
+        self.prefixes[prefix] = namespace
+        return '%s:%s' % (prefix, postfix)
         
