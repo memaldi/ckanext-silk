@@ -900,10 +900,16 @@ class SilkController(BaseController):
         
     def launch(self, linkage_rule_id):
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
-        
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
+        
+        data_dict = {'id': linkage_rule.orig_dataset_id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']        
         
         data_dict = {'id': linkage_rule.orig_resource_id}
         orig_resource = ckan.logic.get_action('resource_show')(context, data_dict)
@@ -1096,7 +1102,8 @@ class SilkController(BaseController):
         fl.close()
         
         celery.send_task("silk.launch", args=[file_name], task_id=task_id)
-
+        
+        return render('silk/silk_launched.html')
 
     def get_prefix(self, uri):
         if '#' in uri:
@@ -1104,16 +1111,17 @@ class SilkController(BaseController):
             postfix = uri.split('#')[1]
         else:
             splitted_uri = uri.split('/')
-            log.info(splitted_uri)
             namespace = ''
             for i in range(0, len(splitted_uri) - 1):
                 namespace += splitted_uri[i] + '/'
             postfix = splitted_uri[len(splitted_uri) - 1]
-        
                 
         params = urllib.urlencode({'uri': namespace, 'format': 'json'})
         f = urllib.urlopen('http://prefix.cc/reverse?%s' % params)
-        json_result = json.loads('[%s]' % f.read())
+        result = f.read()
+        log.info(result)
+        json_result = json.loads('[%s]' % result)
+        log.info(json_result)
         for key in json_result[0].keys():
             prefix = key
         self.prefixes[prefix] = namespace
