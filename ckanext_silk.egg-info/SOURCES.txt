@@ -1,9 +1,10 @@
 setup.py
 ckanext/__init__.py
 ckanext/silk/__init__.py
+ckanext/silk/celery_import.py
 ckanext/silk/controller.py
 ckanext/silk/plugin.py
-ckanext/silk/model/LinkageRule.py
+ckanext/silk/tasks.py
 ckanext/silk/model/__init__.py
 ckanext_silk.egg-info/PKG-INFO
 ckanext_silk.egg-info/SOURCES.txt

@@ -11,6 +11,8 @@ import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
 from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter, Comparison, ComparisonParameters
 from xml.dom.minidom import Document
+import uuid
+from ckan.lib.celery_app import celery
 
 log = getLogger(__name__)
 
@@ -1054,13 +1056,39 @@ class SilkController(BaseController):
             prefix.setAttribute('namespace', namespace)
             prefixesNode.appendChild(prefix)
         
+        task_id=str(uuid.uuid4())
+        
+        outputs = document.createElement('Outputs')
+        
+        output = document.createElement('Output')
+        output.setAttribute('type', 'file')
+        param = document.createElement('Param')
+        param.setAttribute('name', 'file')
+        param.setAttribute('value', '/tmp/output-%s.xml' % task_id)
+        output.appendChild(param)
+        param = document.createElement('Param')
+        param.setAttribute('name', 'format')
+        param.setAttribute('value', 'ntriples')
+        output.appendChild(param)
+        
+        outputs.appendChild(output)
         
         silk.appendChild(prefixesNode)
         silk.appendChild(datasources)
         silk.appendChild(interlinks)
+        silk.appendChild(outputs)
         document.appendChild(silk)
         
         log.info(document.toprettyxml())
+        
+        
+        file_name = '/tmp/input-%s.xml' % task_id
+        fl = open(file_name, 'w')
+        fl.write(document.toprettyxml())
+        fl.close()
+        
+        celery.send_task("silk.launch", args=[file_name], task_id=task_id)
+
 
     def get_prefix(self, uri):
         if '#' in uri:

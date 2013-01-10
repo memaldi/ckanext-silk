@@ -29,5 +29,8 @@ setup(
        # Add plugins here, eg
        # myplugin=ckanext.silk:PluginClass
        silk=ckanext.silk.plugin:SilkExtension
+       
+       [ckan.celery_task]
+       tasks = ckanext.silk.celery_import:task_imports
        """,
 )
