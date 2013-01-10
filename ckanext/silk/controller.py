@@ -61,7 +61,7 @@ class SilkController(BaseController):
         resource_url = urllib.unquote(resource_url)
         json_result = None
         
-        sparql_query = 'SELECT DISTINCT ?class WHERE { [] <%s> ?class }' % unquoted_property
+        sparql_query = 'SELECT DISTINCT ?class WHERE { [] <%s> ?class } ORDER BY ?class' % unquoted_property
         params = urllib.urlencode({'query': sparql_query, 'format': 'application/json'})
         f = urllib.urlopen(resource_url, params)
         json_result = json.loads(f.read())
