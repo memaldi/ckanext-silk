@@ -14,7 +14,7 @@ setup(
 	author='Mikel Emaldi',
 	author_email='m.emaldi@deusto.es',
 	url='http://www.morelab.deusto.es',
-	license='',
+	license='Apache2.0',
 	packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
 	namespace_packages=['ckanext', 'ckanext.silk'],
 	include_package_data=True,
