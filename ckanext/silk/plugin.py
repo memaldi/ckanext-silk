@@ -50,7 +50,7 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/readlinkagerule/{id}/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/editrestriction/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='restriction_edit')
         map.connect('/silk/editpathinput/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='path_input_edit')
-        map.connect('/silk/{id}/{linkage_rule_id}/deletepathinput/{path_input_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
+        map.connect('/silk/{id}/{linkage_rule_id}/{object}/{object_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/edittransformation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='transformation_edit')
         map.connect('/silk/editcomparison/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='comparison_edit')
         map.connect('/silk/editaggregation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='aggregation_edit')

@@ -393,7 +393,7 @@ class SilkController(BaseController):
         
         return render('silk/edit_linkage_rules.html')
         
-    def resource_read(self, id, linkage_rule_id, path_input_id=None):
+    def resource_read(self, id, linkage_rule_id, object=None, object_id=None):
         
         log.info('Params: %s' % request.params)
         
@@ -415,8 +415,11 @@ class SilkController(BaseController):
                 if request.params['aggregation-save'] == 'true':
                     self.save_aggregation(request.params, linkage_rule_id)
                     
-        if path_input_id:
-            self.path_input_delete(path_input_id)
+        log.info('Object id %s' % object_id)
+        if object == 'deletepathinput':
+            self.path_input_delete(object_id)
+        elif object == 'deletecomparison':
+            self.comparison_delete(object_id)
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -513,7 +516,7 @@ class SilkController(BaseController):
             path_input_comparisons = path_input.comparisons
             path_input_comparison_list = []
             for comparison in path_input_comparisons:
-                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'treshold': comparison.treshold, 'required': comparison.required, 'weight': comparison.weight}
+                comparison_dict = {'id': comparison.id, 'distance_measure': comparison.distance_measure, 'threshold': comparison.threshold, 'required': comparison.required, 'weight': comparison.weight}
                 if comparison_dict not in c.comparison_list:
                     c.comparison_list.append(comparison_dict)
                 
@@ -702,6 +705,11 @@ class SilkController(BaseController):
         
         path_input = model.Session.query(PathInput).filter_by(id=path_input_id).first()
         model.Session.delete(path_input)
+        model.Session.commit()
+        
+    def comparison_delete(self, comparison_id):
+        comparison = model.Session.query(Comparison).filter_by(id=comparison_id).first()
+        model.Session.delete(comparison)
         model.Session.commit()
         
     def transformation_edit(self, linkage_rule_id):
