@@ -54,13 +54,8 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/edittransformation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='transformation_edit')
         map.connect('/silk/editcomparison/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='comparison_edit')
         map.connect('/silk/editaggregation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='aggregation_edit')
-        #map.connect('/silk/linkage-rule-edit/{id}', controller='ckanext.silk.controller:SilkController', action='edit_linkage_rules')
-        #map.connect('/silk/main/{id}', controller='ckanext.silk.controller:SilkController', action='new')
-        #map.connect('/silk/properties', controller='ckanext.silk.controller:SilkController', action='properties')
         map.connect('/silk/get_resources/{value}', controller='ckanext.silk.controller:SilkController', action='get_resources')
         map.connect('/silk/get_classes/{property}/{resource_url}', controller='ckanext.silk.controller:SilkController', action='get_classes')
         map.connect('/silk/launch/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='launch')
-        
-        
-        #map.connect('/silk/restrictions/{id}', controller='ckanext.silk.controller:SilkController', action='restrictions')
+                
         return map
