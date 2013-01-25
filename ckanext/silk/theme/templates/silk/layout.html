@@ -7,7 +7,7 @@
     
     <py:match path="minornavigation">
         <ul class="nav nav-pills">
-            <li class="${'active' if c.action=='read' else ''}">${h.subnav_link(h.icon('rdf_flyer.24') + _('Overview'), controller='ckanext.silk.controller:SilkController', action='read', id=c.pkg.name)}</li>
+            <li class="${'active' if c.action=='read' else ''}">${h.subnav_link(h.icon('rdf_flyer.24') + _('Overview'), controller='ckanext.silk.controller:SilkController', action='read', id=c.id)}</li>
             <py:choose test="len(c.pkg_dict.get('linkage_rules', []))==0 and not h.check_access('package_update',{'id':c.pkg.id})">
                 <py:when test="True">
                     <li class="disabled">

@@ -89,48 +89,7 @@ class SilkController(BaseController):
             linkage_rules_list.append({'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id})
         
         return linkage_rules, linkage_rules_list
-        
-    def restrictions(self, context, params): 
-        log.info(request.params)        
-        routes = request.environ.get('pylons.routes_dict')
-        c.dataset_id = routes['id']
-        c.orig_resource_id = params['resource_id']
-        c.dest_resource_id = params['dest_resource_id']
-        c.dest_dataset_id = params['dest_package_id']
-        
-        data_dict = {
-                'q': '*:*',
-                'facet.field': g.facets,
-                'rows': 0,
-                'start': 0,
-                'fq': 'capacity:"public"',
-                'id': c.dataset_id
-            }
-        
-        package = ckan.logic.get_action('package_show')(
-                    context, data_dict)
-                    
-        c.orig_dataset_name = package['title']
-        
-        data_dict = {
-                'q': '*:*',
-                'facet.field': g.facets,
-                'rows': 0,
-                'start': 0,
-                'fq': 'capacity:"public"',
-                'id': c.dest_dataset_id
-        }
-        
-        dest_package = ckan.logic.get_action('package_show')(
-                    context, data_dict)
-                    
-        c.dest_dataset_name = dest_package['title']
-        
-        
-        c.form = render('silk/restrictions_form.html')
-        
-        return render('silk/restrictions.html')
-        
+       
         
     # Aqui empieza lo bueno
     
@@ -163,6 +122,7 @@ class SilkController(BaseController):
         linkage_rules, linkage_rules_list = self.get_linkage_rules(c.pkg_dict['name'])
         
         c.pkg_dict['linkage_rules'] = linkage_rules_list
+        c.id = id
                 
         return render('silk/read.html')
         
@@ -440,7 +400,8 @@ class SilkController(BaseController):
         data_dict = {'id': resource_id}
         c.resource_dict = get_action('resource_show')(context, data_dict)
         
-        linkage_rule, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        c.id = linkage_rule.orig_dataset_id
         
         c.pkg_dict['linkage_rules'] = linkage_rules_list
         
@@ -504,7 +465,9 @@ class SilkController(BaseController):
         for binding in binding_list:
             c.property_list.append(binding['p']['value'])
             
-        linkage_rule, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        c.id = linkage_rule.orig_dataset_id
+        
         c.pkg_dict['linkage_rules'] = linkage_rules_list
         
         c.form = render('silk/path_input_form.html')
@@ -554,7 +517,9 @@ class SilkController(BaseController):
             for path_input in path_inputs:
                 c.path_input_options += '<option value="%s">%s/%s</option>' % (path_input.id, restriction.variable_name, path_input.path_input)
                         
-        linkage_rule, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        c.id = linkage_rule.orig_dataset_id
+        
         c.pkg_dict['linkage_rules'] = linkage_rules_list                
         
         c.form = render('silk/transformation_form.html')
@@ -650,7 +615,9 @@ class SilkController(BaseController):
                     #c.option += '<option value="transformation-%s">Transformation #%s</option>' % (transformation.id, transformation.id)
                     c.transformations.append({'id': transformation.id})
         
-        linkage_rule, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        c.id = linkage_rule.orig_dataset_id
+        
         c.pkg_dict['linkage_rules'] = linkage_rules_list
         
         c.form = render('silk/comparison_form.html')
