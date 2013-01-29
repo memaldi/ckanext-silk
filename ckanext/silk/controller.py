@@ -499,7 +499,11 @@ class SilkController(BaseController):
     def save_path_input(self, params, linkage_rule_id):
         log.info(request.params)
         
-        path_input = PathInput(request.params['restriction-id'], request.params['input_path'])
+        if request.params['input_path'] == 'custom_input_path':
+            path_input = PathInput(request.params['restriction-id'], request.params['custom_input_path_value'])
+        else:
+            path_input = PathInput(request.params['restriction-id'], request.params['input_path'])
+            
         restriction = model.Session.query(Restriction).filter_by(id=request.params['restriction-id']).first()
         restriction.path_inputs.append(path_input)
         model.Session.add(path_input)
