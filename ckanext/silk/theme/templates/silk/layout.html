@@ -20,10 +20,7 @@
                       <div class="dropdown-appears">
                         <ul class="dropdown-menu">
                           <li py:if="h.check_access('package_update',{'id':c.pkg.id})">
-                            ${h.link_to(
-                              h.icon('page_white_add') + _('Add / Edit Linkage Rules'),
-                              h.url_for(action='edit_linkage_rules', id=c.pkg.name, controller='ckanext.silk.controller:SilkController')
-                              )}
+                           <a href="/silk/editlinkagerules/${c.pkg_dict['name']}/new">${h.icon('page_white_add')} Add Linkage Rule</a>
                             <hr py:if="len(c.pkg_dict.get('linkage_rules',[]))>0"/>
                           </li>
                           <li py:for="lr in c.pkg_dict.get('linkage_rules', [])">

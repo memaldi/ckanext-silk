@@ -40,7 +40,7 @@
                     <div class="control-group">
                         <label class="control-label" property="rdfs:label" for="">Name</label>
                         <div class="controls" property="rdf:value">
-                            <input class="js-resource-edit-name" type="text" value="" name="new_linkage_rule_name"/>
+                            <input class="js-resource-edit-name" type="text" value="${c.linkage_rule_dict['name']}" name="new_linkage_rule_name"/>
                         </div>
                     </div>
                     
@@ -48,9 +48,21 @@
                         <label class="control-label" for="resource">Resource from ${c.pkg['title']}</label>
                         <div class="controls">
                             <select id="resource_id" name="resource_id">
-                                <option value="None" selected="selected"></option>
+                                <py:choose>
+                                    <py:when test="c.linkage_rule_dict['id'] == ''">
+                                        <option value="None" selected="selected"></option>
+                                    </py:when>
+                                </py:choose>
+                                
                                 <py:for each="resource_id, resource_title in c.valid_resources">
-                                    <option value="${resource_id}">${resource_title}</option>
+                                    <py:choose>
+                                        <py:when test="c.linkage_rule_dict['orig_resource_id']  == resource_id">
+                                            <option value="${resource_id}" selected="selected">${resource_title}</option>
+                                        </py:when>
+                                        <py:otherwise>
+                                            <option value="${resource_id}">${resource_title}</option>
+                                        </py:otherwise>
+                                    </py:choose>
                                 </py:for>
                             </select>
                         </div>
@@ -60,9 +72,20 @@
                         <label class="control-label" for="dest_dataset_id">Dataset to link to</label>
                         <div class="controls">
                             <select id="dest_package_id" name="dest_package_id" onchange="javascript:get_resources(this)">
-                                <option value="None" selected="selected"></option>
+                                <py:choose>
+                                    <py:when test="c.linkage_rule_dict['id'] == ''">
+                                        <option value="None" selected="selected"></option>
+                                    </py:when>
+                                </py:choose>
                                 <py:for each="package_title, package_id in c.dest_packages">
-                                    <option value="${package_id}">${package_title}</option>
+                                    <py:choose>
+                                        <py:when test="c.linkage_rule_dict['dest_dataset_id'] == package_id">
+                                            <option value="${package_id}" selected="selected">${package_title}</option>
+                                        </py:when>
+                                        <py:otherwise>
+                                            <option value="${package_id}">${package_title}</option>
+                                        </py:otherwise>
+                                    </py:choose>
                                 </py:for>
                             </select>
                         </div>
@@ -72,7 +95,23 @@
                         <label class="control-label" for="dest_resource_id">Resource</label>
                         <div class="controls">
                             <select id="dest_resource_id" name="dest_resource_id">
-                                <option value="None" selected="selected"></option>
+                                <py:choose>
+                                    <py:when test="c.linkage_rule_dict['id'] == ''">
+                                        <option value="None" selected="selected"></option>
+                                    </py:when>
+                                    <py:otherwise>
+                                        <py:for each="resource_id, resource_name in c.dest_resources">
+                                            <py:choose>
+                                                <py:when test="c.linkage_rule_dict['dest_resource_id'] == resource_id">
+                                                    <option value="${resource_id}" selected="selected">${resource_name}</option>
+                                                </py:when>
+                                                <py:otherwise>
+                                                    <option value="${resource_id}">${resource_name}</option>
+                                                </py:otherwise>
+                                            </py:choose>
+                                        </py:for>
+                                    </py:otherwise>
+                                </py:choose>
                             </select>
                         </div>
                     </div>     
@@ -80,7 +119,14 @@
                     <div class="control-group">
                         <label class="control-label" for="link_type">Link type</label>
                         <div class="controls">
-                            <input type="text" name="link_type" value="http://www.w3.org/2002/07/owl#sameAs"></input>
+                            <py:choose>
+                                <py:when test="c.linkage_rule_dict['id'] == ''">
+                                    <input type="text" name="link_type" value="http://www.w3.org/2002/07/owl#sameAs"></input>
+                                </py:when>
+                                <py:otherwise>
+                                    <input type="text" name="link_type" value="${c.linkage_rule_dict['link_type']}"></input>
+                                </py:otherwise>
+                            </py:choose>
                         </div>
                     </div>
                     
@@ -89,6 +135,17 @@
         </div>
     </div>
   </fieldset>
+  
+  <div id="hidden-fields">
+    <py:choose>
+        <py:when test="c.linkage_rule_dict['id'] == ''">
+            <input type="hidden" name="linkage_rule_id" value="-1"></input>
+        </py:when>
+        <py:otherwise>
+            <input type="hidden" name="linkage_rule_id" value="${c.linkage_rule_dict['id']}"></input>
+        </py:otherwise>
+    </py:choose>
+  </div>
   
   <div class="form-actions">
     <input id="save" name="save" type="submit" class="btn btn-primary" value="Save" />
