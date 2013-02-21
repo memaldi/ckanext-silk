@@ -106,7 +106,7 @@
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
-                                            <dd><a href="">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
+                                            <dd><a href="/silk/editpathinput/${c.linkage_rule_dict['id']}/orig/${path_input['id']}">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>
@@ -117,7 +117,7 @@
                 
                 <div class="notes">
                     <div id="notes-extract">
-                        <h4>Path Inputs for ${c.dest_variable_name} <a class="btn btn-primary " href="/silk/editpathinput/${c.linkage_rule_dict['id']}/dest">+</a></h4>
+                        <h4>Path Inputs for ${c.dest_variable_name} <a class="btn btn-primary " href="/silk/newpathinput/${c.linkage_rule_dict['id']}/dest">+</a></h4>
                         <py:choose>
                             <py:when test="len(c.dest_path_inputs_list) == 0">
                                 <p>No Path Input set for ${c.dest_variable_name}. </p>
@@ -131,7 +131,7 @@
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
-                                            <dd><a href="">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
+                                            <dd><a href="/silk/editpathinput/${c.linkage_rule_dict['id']}/dest/${path_input['id']}">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>

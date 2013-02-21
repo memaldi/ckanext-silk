@@ -431,7 +431,7 @@ class SilkController(BaseController):
             
         return render('silk/restrictions.html')
 
-    def path_input_edit(self, linkage_rule_id, dataset):
+    def path_input_new(self, linkage_rule_id, dataset):
         c.dataset = dataset
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
@@ -484,29 +484,47 @@ class SilkController(BaseController):
         
         c.property_list = []
         
+        path_input = ''
+        if c.path_input_dict != '':
+            log.info('path input new: %s', c.path_input_dict)
+            path_input == c.path_input_dict['path_input']
+        
+        c.match = False
         for binding in binding_list:
             c.property_list.append(binding['p']['value'])
-            
+            if binding['p']['value'] == path_input:
+               c.match = True
+        
         linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
         c.id = linkage_rule.orig_dataset_id
         
         c.pkg_dict['linkage_rules'] = linkage_rules_list
-        
         c.form = render('silk/path_input_form.html')
         return render('silk/path_input.html')
 
 
+    def path_input_edit(self, linkage_rule_id, dataset, path_input_id):
+        path_input = model.Session.query(PathInput).filter_by(id=path_input_id).first()
+        c.path_input_dict = {'id': path_input_id, 'path_input': path_input.path_input, 'restriction_id': path_input.restriction_id}
+        log.info('path input edit %s', c.path_input_dict)
+        c.edit = True
+        return self.path_input_new(linkage_rule_id, dataset)
+
     def save_path_input(self, params, linkage_rule_id):
         log.info(request.params)
-        
+        path_input_str = ''
         if request.params['input_path'] == 'custom_input_path':
-            path_input = PathInput(request.params['restriction-id'], request.params['custom_input_path_value'])
+            path_input_str = request.params['custom_input_path_value']
         else:
-            path_input = PathInput(request.params['restriction-id'], request.params['input_path'])
-            
-        restriction = model.Session.query(Restriction).filter_by(id=request.params['restriction-id']).first()
-        restriction.path_inputs.append(path_input)
-        model.Session.add(path_input)
+            path_input_str = request.params['input_path']
+        if 'path-input-id' in request.params:            
+            path_input = model.Session.query(PathInput).filter_by(id=request.params['path-input-id']).first()
+            path_input.path_input = path_input_str
+        else:
+            path_input = PathInput(request.params['restriction-id'], path_input_str)
+            restriction = model.Session.query(Restriction).filter_by(id=request.params['restriction-id']).first()
+            restriction.path_inputs.append(path_input)
+            model.Session.add(path_input)
         model.Session.commit()
 
     def path_input_delete(self, path_input_id):

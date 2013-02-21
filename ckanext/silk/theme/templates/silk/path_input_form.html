@@ -19,15 +19,47 @@
     <label class="control-label" for="input_path">Property:</label>
     <div class="controls">
         <py:for each="property in c.property_list">
-            <input type="radio" name="input_path" value="${property}">${property}</input><br />
+            <py:choose>
+                <py:when test="c.path_input_dict == ''">
+                    <input type="radio" name="input_path" value="${property}">${property}</input><br />
+                </py:when>
+                <py:otherwise>
+                    <py:choose>
+                        <py:when test="c.path_input_dict['path_input'] == property">
+                            <input type="radio" name="input_path" value="${property}" checked="True">${property}</input><br />
+                        </py:when>
+                        <py:otherwise>
+                            <input type="radio" name="input_path" value="${property}">${property}</input><br />
+                        </py:otherwise>
+                    </py:choose>
+                </py:otherwise>
+            </py:choose>
         </py:for>
-        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+        <py:choose>
+            <py:when test="c.path_input_dict == ''">
+                <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+            </py:when>
+            <py:otherwise>
+                <py:choose>
+                    <py:when test="c.match==True">
+                        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value" value="${c.path_input_dict['path_input']}"/></input>
+                    </py:when>
+                    <py:otherwise>
+                        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+                    </py:otherwise>
+                </py:choose>
+            </py:otherwise>
+        </py:choose>
     </div>
   </div>
-  
   <div class="control-group" id="hidden-fields">
         <input type="hidden" name="pathinput-save" value="true"/>
         <input type="hidden" name="restriction-id" value="${c.restriction_id}"/>
+        <py:choose>
+            <py:when test="c.edit==True">
+                <input type="hidden" name="path-input-id" value="${c.path_input_dict['id']}"/>
+            </py:when>
+        </py:choose>
   </div>
   
   <div class="form-actions">
