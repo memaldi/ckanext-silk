@@ -1,6 +1,6 @@
 from pylons import config
 from ckan.plugins import SingletonPlugin, IPackageController, implements
-from ckan.lib.base import BaseController, render, c, model, g, request
+from ckan.lib.base import BaseController, render, c, model, g, request, response
 from logging import getLogger
 from ckan.logic import NotAuthorized, check_access, get_action
 import urllib
@@ -387,6 +387,14 @@ class SilkController(BaseController):
 
         if len(c.orig_path_inputs_list) > 0 and len(c.dest_path_inputs_list) > 0:
             c.path_inputs_control = True        
+            
+        try:
+            with open(linkage_rule.rule_output): 
+                c.file_ready = True
+        except IOError:
+            c.file_ready = False
+            
+        log.info("File ready " + str(c.file_ready))
 
         return render('silk/read_linkage_rule.html')
         
@@ -969,3 +977,15 @@ class SilkController(BaseController):
         self.prefixes[prefix] = namespace
         return '%s:%s' % (prefix, postfix)
         
+    def get_results(self, linkage_rule_id):
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        f = open(linkage_rule.rule_output)
+        data = f.read()
+        response.status_int = 200
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['Content-Disposition'] = 'attachment; filename="%s"' % 'result.n3'
+        response.headers['Content-Length'] = len(data)
+        response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+
+        return data

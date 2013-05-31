@@ -247,6 +247,11 @@
             <py:when test="c.launch_control">
                 <div class="form-actions">
                     <a href="/silk/launch/${c.linkage_rule_dict['id']}">Launch!</a>
+                    <py:choose>
+                        <py:when test="c.file_ready">
+                            - <a href="/silk/getresults/${c.linkage_rule_dict['id']}">Get results!</a>
+                        </py:when>
+                    </py:choose>
                 </div>
             </py:when>
         </py:choose>
