@@ -4,6 +4,7 @@ from sqlalchemy.orm import mapper, relationship
 from pylons import config
 import sqlalchemy
 from logging import getLogger
+import sys
 
 log = getLogger(__name__)
 
@@ -141,7 +142,17 @@ mapper(Restriction, restriction_table, properties={'path_inputs': relationship(P
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
 
 
+class Configuration:
+    
+    @staticmethod
+    def create_db():
 
-#engine = create_engine('postgresql://ckanuser:pass@localhost/ckantest')
-#metadata.drop_all(engine)
-#metadata.create_all(engine)
+        print 'Creating Database...'
+        try:
+            engine = create_engine('postgresql://ckanuser:pass@localhost/ckantest')
+            metadata.drop_all(engine)
+            metadata.create_all(engine)
+            print 'Database successfully created!'
+        except Exception as e:
+            print 'Fail on creating database:'
+            print e
