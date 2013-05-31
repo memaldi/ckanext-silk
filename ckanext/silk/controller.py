@@ -96,7 +96,7 @@ class SilkController(BaseController):
     def save(self, id, params, linkage_rule_id=None):
         session = model.Session
         log.info(params)
-        if linkage_rule_id == -1:
+        if linkage_rule_id == '-1':
             linkage_rule = LinkageRule(params['new_linkage_rule_name'], id, params['resource_id'], params['dest_package_id'], params['dest_resource_id'], params['link_type'])
             session.add(linkage_rule)
         else:
