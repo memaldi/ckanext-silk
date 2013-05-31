@@ -736,6 +736,7 @@ class SilkController(BaseController):
         model.Session.commit()
         
     def launch(self, linkage_rule_id):
+
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
 
@@ -932,13 +933,17 @@ class SilkController(BaseController):
         
         log.info(document.toprettyxml())
         
-        
+        c.silk_xml = document.toprettyxml()
+    
         file_name = '/tmp/input-%s.xml' % task_id
         fl = open(file_name, 'w')
         fl.write(document.toprettyxml())
         fl.close()
         
         celery.send_task("silk.launch", args=[file_name], task_id=task_id)
+        
+        linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
+        model.Session.commit()
         
         return render('silk/silk_launched.html')
 

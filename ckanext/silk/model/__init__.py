@@ -20,6 +20,7 @@ linkage_rule_table = Table('linkage_rule', metadata,
         Column('dest_resource_id', UnicodeText, nullable=False),
         Column('link_type', UnicodeText, nullable=False),
         Column('aggregation', UnicodeText),
+        Column('rule_output', UnicodeText),
 )
 
 class LinkageRule(object):
@@ -31,6 +32,7 @@ class LinkageRule(object):
         self.dest_dataset_id = dest_dataset_id
         self.dest_resource_id = dest_resource_id
         self.link_type = link_type
+        self.rule_output = None
 
 
 restriction_table = Table('restriction', metadata,
