@@ -9,7 +9,7 @@ import json
 from rdflib import Graph
 import ckanext.datastore.logic.action as action
 from ckan.lib.plugins import lookup_package_plugin
-from ckanext.silk.model import LinkageRule, Restriction, PathInput, Transformation, Parameter, Comparison, ComparisonParameters
+from ckanext.silk.model.integration_model import LinkageRule, Restriction, PathInput, Transformation, Parameter, Comparison, ComparisonParameters
 from xml.dom.minidom import Document
 import uuid
 from ckan.lib.celery_app import celery
