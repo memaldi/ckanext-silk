@@ -147,11 +147,11 @@ mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship
 class Configuration:
     
     @staticmethod
-    def create_db():
+    def create_db(user, passwd):
 
         print 'Creating Database...'
         try:
-            engine = create_engine('postgresql://ckanuser:pass@localhost/ckantest')
+            engine = create_engine('postgresql://%s:%s@localhost/ckantest' % (user, passwd))
             metadata.drop_all(engine)
             metadata.create_all(engine)
             print 'Database successfully created!'
