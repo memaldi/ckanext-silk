@@ -142,19 +142,3 @@ mapper(Transformation, transformation_table, properties={'path_inputs': relation
 mapper(Comparison, comparison_table, properties={'transformations': relationship(Transformation, secondary=comparison_transformation_association_table, backref='comparisons'), 'path_inputs': relationship(PathInput, secondary=comparison_path_input_association_table, backref='comparisons'), 'parameters': relationship(ComparisonParameters, backref='comparison', order_by=comparison_parameters_table.c.id)})
 mapper(Restriction, restriction_table, properties={'path_inputs': relationship(PathInput, backref='restriction', order_by=path_input_table.c.id)})
 mapper(LinkageRule, linkage_rule_table, properties={'restrictions': relationship(Restriction, backref='linkage_rule', order_by=restriction_table.c.id)})
-
-
-class Configuration:
-    
-    @staticmethod
-    def create_db(user, passwd):
-
-        print 'Creating Database...'
-        try:
-            engine = create_engine('postgresql://%s:%s@localhost/ckantest' % (user, passwd))
-            metadata.drop_all(engine)
-            metadata.create_all(engine)
-            print 'Database successfully created!'
-        except Exception as e:
-            print 'Fail on creating database:'
-            print e
