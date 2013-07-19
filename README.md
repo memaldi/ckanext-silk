@@ -29,7 +29,7 @@ Extract file to some system directory
 Add plugin configuration variables to CKAN development.ini
 
     [plugin:silk]
-    silk_home = 'some_folder/silk_2.5.3'
+    silk_home = 'some_dir/silk_2.5.3'
 
     
 **Celery task queue initialization**
