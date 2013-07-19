@@ -19,3 +19,14 @@ Tested with CKAN 1.8
 **Initialize new tables on CKAN database (Change user & pass)**
 
     python ckanext/silk/model/initDB.py
+    
+**Celery task queue initialization**
+This plugin uses Celery (http://celeryproject.org/) for task queueing. 
+
+Start the CKAN instance
+
+    paster serve development.ini
+    
+Start the Celery server
+
+    paster celeryd run
