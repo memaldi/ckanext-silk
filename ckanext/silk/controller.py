@@ -13,6 +13,7 @@ from ckanext.silk.model.integration_model import LinkageRule, Restriction, PathI
 from xml.dom.minidom import Document
 import uuid
 from ckan.lib.celery_app import celery
+import os
 
 log = getLogger(__name__)
 
@@ -387,12 +388,8 @@ class SilkController(BaseController):
 
         if len(c.orig_path_inputs_list) > 0 and len(c.dest_path_inputs_list) > 0:
             c.path_inputs_control = True        
-            
-        try:
-            with open(linkage_rule.rule_output): 
-                c.file_ready = True
-        except IOError:
-            c.file_ready = False
+        
+        c.file_ready = linkage_rule.rule_output is not None and os.path.exists(linkage_rule.rule_output)
             
         log.info("File ready " + str(c.file_ready))
 
