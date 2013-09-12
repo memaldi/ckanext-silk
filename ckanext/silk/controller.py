@@ -986,3 +986,32 @@ class SilkController(BaseController):
         response.headers['Pragma'] = 'no-cache'
 
         return data
+        
+    def remove_linkage_rule(self, id, linkage_rule_id):
+        print 'Deleting linkage rule %s for package %s' % (linkage_rule_id, id)
+        
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+        
+        data_dict = {'id': id}
+        c.pkg_dict = get_action('package_show')(context, data_dict)           
+        
+        model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).delete()
+        model.Session.commit()
+        
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+                   
+        data_dict = {'id': id}
+        
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        c.pkg = context['package']
+                
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(c.pkg_dict['name'])
+        
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+        c.id = id
+                
+        return render('silk/read.html')
