@@ -397,7 +397,6 @@ class SilkController(BaseController):
             comparison['params'] = param_list
             new_comparison_list.append(comparison)
             
-        
         c.comparison_list = new_comparison_list
         #log.info(c.transformation_list)
         
@@ -430,9 +429,28 @@ class SilkController(BaseController):
         restriction = Restriction(params['resource_id'], params['variable_name'], params['restriction'], params['class_select'], linkage_rule_id)
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         
-        linkage_rule.restrictions.append(restriction)
-        model.Session.add(restriction)
-        model.Session.commit()
+        #obtain all restrictions for linkage rule with the same resource id
+        restrictions = model.Session.query(Restriction).filter_by(linkage_rule_id=linkage_rule_id,
+            resource_id=params['resource_id']).all()
+            
+        if self.isVariableNameUnique(restriction, restrictions):        
+            linkage_rule.restrictions.append(restriction)
+            model.Session.add(restriction)
+            model.Session.commit()
+        else:
+            print 'Variable name is already in use'
+            
+    def isVariableNameUnique(self, restriction, restrictions):
+        variables = set()
+        variables.add(restriction.variable_name)
+        
+        for r in restrictions:
+            variables.add(r.variable_name)
+        
+        print variables
+        print restrictions
+            
+        return len(variables) == len(restrictions) + 1
         
     def restriction_edit(self, linkage_rule_id, dataset):
         c.dataset = dataset
