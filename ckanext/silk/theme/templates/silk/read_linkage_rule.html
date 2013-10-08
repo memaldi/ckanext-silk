@@ -41,7 +41,8 @@
         <h3>Class Restrictions</h3>
         <div class="notes">
             <div id="notes-extract">
-                <h4>Restrictions for Source Dataset (${c.pkg_dict.get('title', c.pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/orig">Restriction settings</a></h4> 
+                <h4>Restrictions for Source Dataset (${c.pkg_dict.get('title', c.pkg_dict['name'])})</h4> 
+                <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/orig">Add restriction</a>
                 <py:choose>
                     <py:when test="len(c.orig_restrictions_list) == 0">
                         <p>No restrictions set for (${c.pkg_dict.get('title', c.pkg_dict['name'])}). </p>
@@ -65,7 +66,8 @@
         </div>
         <div class="notes">
             <div id="notes-extract">
-                <h4>Restrictions for Destination Dataset (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}) <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/dest">Restriction settings</a></h4> 
+                <h4>Restrictions for Destination Dataset (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])})</h4> 
+                <a class="btn btn-primary " href="/silk/editrestriction/${c.linkage_rule_dict['id']}/dest">Add restriction</a>
                 <py:choose>
                     <py:when test="len(c.dest_restrictions_list) == 0">
                         <p>No restrictions set for (${c.dest_pkg_dict.get('title', c.dest_pkg_dict['name'])}). </p>
