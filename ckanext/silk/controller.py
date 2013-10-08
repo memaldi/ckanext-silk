@@ -533,39 +533,51 @@ class SilkController(BaseController):
         c.variable_name =selected_restriction.variable_name
         
         query = 'SELECT DISTINCT ?s WHERE { ?s <%s> <%s> } LIMIT 1' % (selected_restriction.property, selected_restriction.class_name)
+        print 'Executing query: ', query
         params = urllib.urlencode({'query': query, 'format': 'application/json'})
         f = urllib.urlopen(resource_url, params)
         json_result = json.loads(f.read())
         
         binding_list = json_result['results']['bindings']
         
-        subject = binding_list[0]['s']['value']
-        
-        query = 'SELECT DISTINCT ?p WHERE { <%s> ?p ?o }' % subject
-        
-        params = urllib.urlencode({'query': query, 'format': 'application/json'})
-        f = urllib.urlopen(resource_url, params)
-        json_result = json.loads(f.read())
-        
-        binding_list = json_result['results']['bindings']
-        
-        c.property_list = []
-        
-        path_input = ''
-        if c.path_input_dict != '':
-            log.info('path input new: %s', c.path_input_dict)
-            path_input == c.path_input_dict['path_input']
-        
-        c.match = False
-        for binding in binding_list:
-            c.property_list.append(binding['p']['value'])
-            if binding['p']['value'] == path_input:
-               c.match = True
-        
-        linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        empty = True
+        if len(binding_list) > 0:
+            subject = binding_list[0]['s']['value']
+            
+            query = 'SELECT DISTINCT ?p WHERE { <%s> ?p ?o }' % subject
+            print 'Executing query: ', query
+            
+            params = urllib.urlencode({'query': query, 'format': 'application/json'})
+            f = urllib.urlopen(resource_url, params)
+            json_result = json.loads(f.read())
+            
+            if len(json_result) > 0 and len(json_result['results']) > 0:
+                binding_list = json_result['results']['bindings']
+                
+                c.property_list = []
+                
+                path_input = ''
+                if c.path_input_dict != '':
+                    log.info('path input new: %s', c.path_input_dict)
+                    path_input == c.path_input_dict['path_input']
+                
+                c.match = False
+                for binding in binding_list:
+                    c.property_list.append(binding['p']['value'])
+                    if binding['p']['value'] == path_input:
+                       c.match = True
+                
+                linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+                
+                c.pkg_dict['linkage_rules'] = linkage_rules_list
+                empty = False
+            
+        if empty:
+            print 'No data retrieved'
+            c.pkg_dict['linkage_rules'] = []
+            c.property_list = []
+
         c.id = linkage_rule.orig_dataset_id
-        
-        c.pkg_dict['linkage_rules'] = linkage_rules_list
         c.form = render('silk/path_input_form.html')
         return render('silk/path_input.html')
 
