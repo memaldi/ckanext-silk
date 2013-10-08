@@ -16,7 +16,7 @@
     </div>
     
     <div class="control-group">
-    <label class="control-label" for="input_path">Property:</label>
+    <label class="control-label" for="input_path">Property</label>
     <div class="controls">
         <py:for each="property in c.property_list">
             <py:choose>
@@ -36,19 +36,23 @@
             </py:choose>
         </py:for>
         <py:choose>
+            <div>
+            <input type="radio" name="input_path" value="custom_input_path">Custom property 
             <py:when test="c.path_input_dict == ''">
-                <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+                <input type="text" name="custom_input_path_value" style="width:350px;"/>
             </py:when>
             <py:otherwise>
                 <py:choose>
                     <py:when test="c.match==True">
-                        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value" value="${c.path_input_dict['path_input']}"/></input>
+                        <input type="text" name="custom_input_path_value" value="${c.path_input_dict['path_input']}" style="width:350px;" />
                     </py:when>
                     <py:otherwise>
-                        <input type="radio" name="input_path" value="custom_input_path">Custom property: <input type="text" name="custom_input_path_value"/></input>
+                        <input type="text" name="custom_input_path_value" style="width:350px;"/>
                     </py:otherwise>
                 </py:choose>
             </py:otherwise>
+            </input>
+            </div>
         </py:choose>
     </div>
   </div>
