@@ -566,10 +566,6 @@ class SilkController(BaseController):
                     c.property_list.append(binding['p']['value'])
                     if binding['p']['value'] == path_input:
                        c.match = True
-                
-                linkage_rules, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
-                
-                c.pkg_dict['linkage_rules'] = linkage_rules_list
                 empty = False
             
         if empty:
@@ -577,6 +573,9 @@ class SilkController(BaseController):
             c.pkg_dict['linkage_rules'] = []
             c.property_list = []
 
+        _, linkage_rules_list = self.get_linkage_rules(linkage_rule.orig_dataset_id)
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+    
         c.id = linkage_rule.orig_dataset_id
         c.form = render('silk/path_input_form.html')
         return render('silk/path_input.html')
