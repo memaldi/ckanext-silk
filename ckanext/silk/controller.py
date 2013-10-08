@@ -162,8 +162,6 @@ class SilkController(BaseController):
         return render('silk/read.html')
         
     def edit_linkage_rules(self, id, linkage_rule_id=None, error=False, errorMessage=None):
-        '''Hook method made available for routing purposes.'''
-
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
@@ -232,7 +230,6 @@ class SilkController(BaseController):
         return render('silk/edit_linkage_rules.html')
         
     def resource_read(self, id, linkage_rule_id, object=None, object_id=None):
-        
         log.info('Params: %s' % request.params)
         
         #TODO: Seguro que hay una manera mas elegante
@@ -438,7 +435,6 @@ class SilkController(BaseController):
         model.Session.commit()
         
     def restriction_edit(self, linkage_rule_id, dataset):
-          
         c.dataset = dataset
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
@@ -704,7 +700,6 @@ class SilkController(BaseController):
         return render('silk/comparison.html')
 
     def save_comparison(self, params, linkage_rule_id):
-        
         required = False
         if 'required' in params:
             required = True
@@ -747,7 +742,6 @@ class SilkController(BaseController):
         model.Session.commit()
 
     def aggregation_edit(self, linkage_rule_id):
-        
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
 
