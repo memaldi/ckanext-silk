@@ -97,19 +97,45 @@ class SilkController(BaseController):
     def save(self, id, params, linkage_rule_id=None):
         session = model.Session
         log.info(params)
-        if linkage_rule_id == '-1':
-            linkage_rule = LinkageRule(params['new_linkage_rule_name'], id, params['resource_id'], params['dest_package_id'], params['dest_resource_id'], params['link_type'])
-            session.add(linkage_rule)
+        
+        error = False
+        #check linkage rule parameters
+        print params
+        
+        if params['new_linkage_rule_name'] == '':
+            error = True
+            message = 'Empty rule name'
+        elif params['resource_id'] == 'None':
+            error = True
+            message = 'Resource from %s is empty' % id
+        elif params['dest_package_id'] == 'None':
+            error = True
+            message = 'Linked dataset is empty'
+        elif params['dest_resource_id'] == 'None':
+            error = True
+            message = 'Destination resource is empty'
+        elif params['link_type'] == '':
+            error = True
+            message = 'Link type not specified'
+        
+        if error:
+            self.edit_linkage_rules(id, linkage_rule_id, True, message)
         else:
-            linkage_rule = session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
-            linkage_rule.name = params['new_linkage_rule_name']
-            linkage_rule.orig_resource_id = params['resource_id']
-            linkage_rule.dest_dataset_id = params['dest_package_id']
-            linkage_rule.dest_resource_id = params['dest_resource_id']
-            linkage_rule.link_type = params['link_type']
-            #session.update(linkage_rule)
-            
-        session.commit()
+            if linkage_rule_id == '-1':
+                linkage_rule = LinkageRule(params['new_linkage_rule_name'], id,
+                    params['resource_id'], params['dest_package_id'], params['dest_resource_id'], params['link_type'])
+                    
+                session.add(linkage_rule)
+            else:
+                linkage_rule = session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+                linkage_rule.name = params['new_linkage_rule_name']
+                linkage_rule.orig_resource_id = params['resource_id']
+                linkage_rule.dest_dataset_id = params['dest_package_id']
+                linkage_rule.dest_resource_id = params['dest_resource_id']
+                linkage_rule.link_type = params['link_type']
+                #session.update(linkage_rule)
+                
+            session.commit()
         
     
     def read(self, id):
@@ -119,8 +145,6 @@ class SilkController(BaseController):
         if (len(request.params) > 0):
             if request.params['save'] == 'Save':
                 self.save(id, request.params, request.params['linkage_rule_id'])
-                
-
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -138,7 +162,7 @@ class SilkController(BaseController):
                 
         return render('silk/read.html')
         
-    def edit_linkage_rules(self, id, linkage_rule_id=None):
+    def edit_linkage_rules(self, id, linkage_rule_id=None, error=False, errorMessage=None):
         '''Hook method made available for routing purposes.'''
 
         context = {'model': model, 'session': model.Session,
@@ -177,23 +201,34 @@ class SilkController(BaseController):
             if valid:
                 c.dest_packages.append((package['title'], package['name']))
         
-        
         linkage_rules, linkage_rules_list = self.get_linkage_rules(c.pkg_dict['name'])
         
         c.linkage_rule_dict = {'id': '', 'name': '', 'orig_dataset_id': '', 'orig_resource_id': '', 'dest_dataset_id': '', 'dest_resource_id': ''}
         
         if linkage_rule_id != 'new':
             linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
-            c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id, 'link_type': linkage_rule.link_type}
-            c.dest_resources = []
-            data_dict = {'id': linkage_rule.dest_dataset_id}
-            dest_package = get_action('package_show')(context, data_dict)
-            for resource in dest_package['resources']:
-                c.dest_resources.append((resource['id'], resource['name']))            
+            
+            if linkage_rule is not None:
+                c.linkage_rule_dict = {'id': linkage_rule.id, 
+                    'name': linkage_rule.name, 
+                    'orig_dataset_id': linkage_rule.orig_dataset_id, 
+                    'orig_resource_id': linkage_rule.orig_resource_id, 
+                    'dest_dataset_id': linkage_rule.dest_dataset_id, 
+                    'dest_resource_id': linkage_rule.dest_resource_id, 
+                    'link_type': linkage_rule.link_type}
+                    
+                c.dest_resources = []
+                data_dict = {'id': linkage_rule.dest_dataset_id}
+                dest_package = get_action('package_show')(context, data_dict)
+                for resource in dest_package['resources']:
+                    c.dest_resources.append((resource['id'], resource['name']))            
         
         c.pkg_dict['linkage_rules'] = linkage_rules_list
         
         c.form = render('silk/linkage_rule_form.html')
+        
+        c.error = error
+        c.errorMessage = errorMessage
         
         return render('silk/edit_linkage_rules.html')
         
@@ -533,7 +568,6 @@ class SilkController(BaseController):
         model.Session.commit()
 
     def path_input_delete(self, path_input_id):
-        
         path_input = model.Session.query(PathInput).filter_by(id=path_input_id).first()
         model.Session.delete(path_input)
         model.Session.commit()
@@ -575,7 +609,6 @@ class SilkController(BaseController):
         return render('silk/transformation.html')
         
     def save_transformation(self, params, linkage_rule_id):
-        
         transformation_id = params['transformation_id']
         transformation = Transformation(transformation_id)
         
@@ -636,7 +669,6 @@ class SilkController(BaseController):
         model.Session.commit()
 
     def comparison_edit(self, linkage_rule_id):
-        
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
 
