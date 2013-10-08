@@ -27,14 +27,21 @@
         </div>
         <div class="quick-info">
             <dl>
+                <h4>Source</h4>
                 <dt>Rule Name</dt>
                 <dd>${c.linkage_rule_dict['name']}</dd>
                 <dt>Source Resource</dt>
                 <dd>${c.orig_resource['name']} (<a href="${c.orig_resource['url']}">${c.orig_resource['url']}</a>)</dd>
-                <dt>Dest. Dataset</dt>
-                <dd><a href="/dataset/${c.dest_pkg_dict['name']}">${c.dest_pkg_dict['name']}</a></dd>
-                <dt>Dest. Resource</dt>
-                <dd>${c.dest_resource['name']} (<a href="${c.dest_resource['url']}">${c.dest_resource['url']}</a>)</dd>
+                
+                <div class="quick-info">
+                    <dl>
+                        <h4>Destination</h4>
+                        <dt>Dataset</dt>
+                        <dd><a href="/dataset/${c.dest_pkg_dict['name']}">${c.dest_pkg_dict['name']}</a></dd>
+                        <dt>Resource</dt>
+                        <dd>${c.dest_resource['name']} (<a href="${c.dest_resource['url']}">${c.dest_resource['url']}</a>)</dd>
+                    </dl>
+                </div>
             </dl>
         </div>
         
