@@ -142,9 +142,8 @@ class SilkController(BaseController):
         #TODO: arreglar esto con params
         log.info(request.params)
        
-        if (len(request.params) > 0):
-            if request.params['save'] == 'Save':
-                self.save(id, request.params, request.params['linkage_rule_id'])
+        if 'save' in request.params and request.params['save'] == 'Save':
+            self.save(id, request.params, request.params['linkage_rule_id'])
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
