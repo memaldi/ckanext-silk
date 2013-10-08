@@ -28,17 +28,17 @@
     </div>
     
     <div class="control-group">
-        <label class="control-label" for="variable_name">Variable Name:</label>
+        <label class="control-label" for="variable_name">Variable Name</label>
         <div class="controls">
-            <input id="variable_name" name="variable_name" type="text" value="?"/>
+            <input id="variable_name" name="variable_name" type="text" value="?" style="width:80px;" maxlength="10"/>
         </div>
     </div>
     
     <div class="control-group">
-        <label class="control-label" for="resource">Restriction by property:</label>
+        <label class="control-label" for="resource">Restriction by property</label>
         <div class="controls">
-            <input id="restriction" name="restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
-            <button type="button" onclick="javascript:get_classes('${c.resource_dict['url']}')">Get Classes</button>
+            <input id="restriction" name="restriction" type="text" value="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" style="width:400px;" />
+            <button type="button" class="btn btn-primary" onclick="javascript:get_classes('${c.resource_dict['url']}')">Get Classes</button>
         </div>
     </div>
     

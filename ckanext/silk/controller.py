@@ -67,9 +67,9 @@ class SilkController(BaseController):
         f = urllib.urlopen(resource_url, params)
         json_result = json.loads(f.read())
         output_html = '''
-                            <label class="control-label" for="classes">Classes:</label>
+                            <label class="control-label" for="classes">Classes</label>
                             <div class="controls">
-                            <select id="class_select" name="class_select">
+                            <select id="class_select" name="class_select" style="width:500px;">
         '''
         
         if json_result != None:
