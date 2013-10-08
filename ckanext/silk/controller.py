@@ -452,7 +452,7 @@ class SilkController(BaseController):
             print 'Class not selected'    
             
     def isVariableNameValid(self, variable_name):
-        return len(variable_name) > 2 and variable_name[0] == '?'
+        return len(variable_name) >= 2 and variable_name[0] == '?'
         
     def isVariableNameUnique(self, restriction, restrictions):
         variables = set()
