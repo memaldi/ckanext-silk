@@ -412,6 +412,8 @@ class SilkController(BaseController):
         
         c.launch_control = False
         
+        c.config_xml = linkage_rule.config_xml
+        
         if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
             
@@ -814,8 +816,7 @@ class SilkController(BaseController):
         linkage_rule.aggregation = params['aggregation']
         model.Session.commit()
         
-    def launch(self, linkage_rule_id):
-
+    def generate(self, linkage_rule_id):
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
 
@@ -940,7 +941,6 @@ class SilkController(BaseController):
         interlink.appendChild(targetdataset)
         
         
-        
         linkagerule = document.createElement('LinkageRule')
                 
         for key in comparison_dict.keys():
@@ -1011,9 +1011,12 @@ class SilkController(BaseController):
         document.appendChild(silk)
         
         log.info(document.toprettyxml())
+        linkage_rule.config_xml = document.toprettyxml()        
+        model.Session.commit()
         
-        c.silk_xml = document.toprettyxml()
-    
+        return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
+        
+    def save_and_launch(self, task_id):
         file_name = '/tmp/input-%s.xml' % task_id
         fl = open(file_name, 'w')
         fl.write(document.toprettyxml())
@@ -1022,9 +1025,6 @@ class SilkController(BaseController):
         celery.send_task("silk.launch", args=[file_name], task_id=task_id)
         
         linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
-        model.Session.commit()
-        
-        return render('silk/silk_launched.html')
 
     def get_prefix(self, uri):
         if '#' in uri:

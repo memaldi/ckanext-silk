@@ -255,18 +255,14 @@
             </py:when>
         </py:choose>
         
-        <py:choose>
-            <py:when test="c.launch_control">
-                <div class="form-actions">
-                    <a class="btn btn-primary" href="/silk/launch/${c.linkage_rule_dict['id']}">Launch Rule!</a>
-                    <py:choose>
-                        <py:when test="c.file_ready">
-                            - <a href="/silk/getresults/${c.linkage_rule_dict['id']}">Get results!</a>
-                        </py:when>
-                    </py:choose>
-                </div>
-            </py:when>
-        </py:choose>
+        <py:if test="c.launch_control">
+            <div class="form-actions">
+                <a class="btn btn-primary" href="/silk/generate/${c.linkage_rule_dict['id']}">Generate Silk Configuration</a>
+                <py:if test="c.config_xml">
+                    <b>-></b> <a class="btn btn-primary" href="/silk/view_config/${c.linkage_rule_dict['id']}">View Config</a>
+                </py:if>
+            </div>
+        </py:if>
   </div>
   
     <xi:include href="layout.html"/>
