@@ -259,7 +259,7 @@
             <div class="form-actions">
                 <a class="btn btn-primary" href="/silk/generate/${c.linkage_rule_dict['id']}">Generate Silk Configuration</a>
                 <py:if test="c.config_xml">
-                    <b>-></b> <a class="btn btn-primary" href="/silk/view_config/${c.linkage_rule_dict['id']}">View Config</a>
+                    <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/view_config/${c.linkage_rule_dict['id']}">View Config</a>
                 </py:if>
             </div>
         </py:if>

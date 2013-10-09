@@ -1010,8 +1010,7 @@ class SilkController(BaseController):
         silk.appendChild(outputs)
         document.appendChild(silk)
         
-        log.info(document.toprettyxml())
-        linkage_rule.config_xml = document.toprettyxml()        
+        linkage_rule.config_xml = document.toprettyxml(indent='  ')        
         model.Session.commit()
         
         return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
@@ -1061,16 +1060,7 @@ class SilkController(BaseController):
 
         return data
         
-    def remove_linkage_rule(self, id, linkage_rule_id):
-        print 'Deleting linkage rule %s for package %s' % (linkage_rule_id, id)
-        
-        context = {'model': model, 'session': model.Session,
-                   'user': c.user or c.author, 'extras_as_string': True,
-                   'for_view': True}
-        
-        data_dict = {'id': id}
-        c.pkg_dict = get_action('package_show')(context, data_dict)           
-        
+    def remove_linkage_rule(self, id, linkage_rule_id):        
         model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).delete()
         model.Session.commit()
         
@@ -1089,3 +1079,23 @@ class SilkController(BaseController):
         c.id = id
                 
         return render('silk/read.html')
+        
+    def view_config(self, id, linkage_rule_id):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+        
+        data_dict = {'id': id}
+        c.pkg_dict = get_action('package_show')(context, data_dict)
+        
+        linkage_rules, linkage_rules_list = self.get_linkage_rules(c.pkg_dict['name'])
+        
+        c.pkg_dict['linkage_rules'] = linkage_rules_list
+        c.pkg = context['package']
+        
+        linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
+        c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
+        
+        c.config_xml = linkage_rule.config_xml
+        
+        return render('silk/view_config.html')
