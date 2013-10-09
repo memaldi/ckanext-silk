@@ -116,8 +116,6 @@
                                 <div class="quick-info">
                                     <py:for each="path_input in c.orig_path_inputs_list">
                                         <dl>
-                                            <dt>Id</dt>
-                                            <dd>#${path_input['id']}</dd>
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
@@ -142,8 +140,6 @@
                                 <div class="quick-info">
                                     <py:for each="path_input in c.dest_path_inputs_list">
                                         <dl>
-                                            <dt>Id</dt>
-                                            <dd>#${path_input['id']}</dd>
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
@@ -173,8 +169,6 @@
                                 <div class="quick-info">
                                     <py:for each="transformation in c.transformation_list">
                                         <dl>
-                                            <dt>Id</dt>
-                                            <dd>#${transformation['id']}</dd>
                                             <dt>Transformation</dt>
                                             <dd>${transformation['name']}</dd>
                                             <py:for each="path_input in transformation['path_inputs']">
@@ -212,8 +206,6 @@
                                 <div class="quick-info">
                                     <py:for each="comparison in c.comparison_list">
                                         <dl>
-                                            <dt>Id</dt>
-                                            <dd>#${comparison['id']}</dd>
                                             <dt>Distance</dt>
                                             <dd>${comparison['distance_measure']}</dd>
                                             <dt>Threshold</dt>
