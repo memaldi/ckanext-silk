@@ -11,8 +11,9 @@ SILK_HOME = config.get('plugin:silk', 'silk_home')
 @celery.task(name = "silk.launch")
 def launch(file_name):
     print 'Launching Silk...'
-    os.system('java -DconfigFile=%s -jar %s/silk.jar' % (file_name, SILK_HOME))
     
-    #subprocess.check_call(['java -jar %s/silk.jar' % SILK_HOME, '-DconfigFile=%s' % file_name])
+    command = 'java -DconfigFile=%s -jar %s/silk.jar' % (file_name, SILK_HOME)
+    print 'Executing command', command
+    os.system(command)    
     
-    print 'Done!'
+    print 'Silk process finished'

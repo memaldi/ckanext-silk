@@ -1015,13 +1015,19 @@ class SilkController(BaseController):
         
         return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
         
-    def save_and_launch(self, task_id):
-        file_name = '/tmp/input-%s.xml' % task_id
-        fl = open(file_name, 'w')
-        fl.write(document.toprettyxml())
-        fl.close()
+    def launch(self, id, linkage_rule_id):
+        linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
         
-        celery.send_task("silk.launch", args=[file_name], task_id=task_id)
+        task_id = str(uuid.uuid4())
+        input_file_name = '/tmp/input-%s.xml' % task_id
+        print 'Saving configuration file to %s' % input_file_name
+        
+        input_file = open(input_file_name, 'w')
+        input_file.write(linkage_rule.config_xml)
+        input_file.close()
+        
+        print 'Launching celery task for Silk'
+        celery.send_task("silk.launch", args=[input_file_name], task_id=task_id)
         
         linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
 
