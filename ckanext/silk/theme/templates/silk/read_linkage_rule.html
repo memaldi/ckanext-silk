@@ -160,12 +160,14 @@
         
         <py:choose>
             <py:when test="c.path_inputs_control">
-                <h3>Transformations <a class="btn btn-primary " href="/silk/edittransformation/${c.linkage_rule_dict['id']}">+</a></h3>
+                <h3>Transformations</h3>
                 <div class="notes">
                     <div class="notes-extract">
+                        <h4>Transformations for rule ${c.linkage_rule_dict['name']}</h4>
+                        <a class="btn btn-primary " href="/silk/edittransformation/${c.linkage_rule_dict['id']}">Add Transformation</a>
                         <py:choose>
                             <py:when test="len(c.transformation_list) == 0">
-                                No transformations set.
+                                <p>No transformations set</p>
                             </py:when>
                             <py:otherwise>
                                 <div class="quick-info">
@@ -197,12 +199,14 @@
         
         <py:choose>
             <py:when test="c.path_inputs_control">
-                <h3>Comparisons <a class="btn btn-primary " href="/silk/editcomparison/${c.linkage_rule_dict['id']}">+</a></h3>
+                <h3>Comparisons</h3>
                 <div class="notes">
                     <div class="notes-extract">
                         <py:choose>
+                            <h4>Comparisons for rule ${c.linkage_rule_dict['name']}</h4>
+                            <a class="btn btn-primary " href="/silk/editcomparison/${c.linkage_rule_dict['id']}">Add Comparison</a>
                             <py:when test="len(c.comparison_list) == 0">
-                                No comparisons set.
+                                <p>No comparisons set</p>
                             </py:when>
                             <py:otherwise>
                                 <div class="quick-info">
