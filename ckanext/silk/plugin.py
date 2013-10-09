@@ -45,14 +45,12 @@ class SilkExtension(SingletonPlugin):
         return stream
         
     def before_map(self, map):
-        map.connect('/silk/{id}', controller='ckanext.silk.controller:SilkController', action='read')
         map.connect('/silk/editlinkagerules/{id}/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='edit_linkage_rules')
         map.connect('/silk/readlinkagerule/{id}/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/removelinkagerule/{id}/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='remove_linkage_rule')
         map.connect('/silk/editrestriction/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='restriction_edit')
         map.connect('/silk/editpathinput/{linkage_rule_id}/{dataset}/{path_input_id}', controller='ckanext.silk.controller:SilkController', action='path_input_edit')
         map.connect('/silk/newpathinput/{linkage_rule_id}/{dataset}', controller='ckanext.silk.controller:SilkController', action='path_input_new')
-        map.connect('/silk/{id}/{linkage_rule_id}/{object}/{object_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/edittransformation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='transformation_edit')
         map.connect('/silk/editcomparison/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='comparison_edit')
         map.connect('/silk/editaggregation/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='aggregation_edit')
@@ -60,5 +58,7 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/get_classes/{property}/{resource_url}', controller='ckanext.silk.controller:SilkController', action='get_classes')
         map.connect('/silk/launch/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='launch')
         map.connect('/silk/getresults/{linkage_rule_id}', controller='ckanext.silk.controller:SilkController', action='get_results')
+        map.connect('/silk/{id}/{linkage_rule_id}/{object}/{object_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
+        map.connect('/silk/{id}', controller='ckanext.silk.controller:SilkController', action='read')
                 
         return map

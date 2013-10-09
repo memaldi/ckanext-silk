@@ -255,6 +255,8 @@ class SilkController(BaseController):
             self.path_input_delete(object_id)
         elif object == 'deletecomparison':
             self.comparison_delete(object_id)
+        elif object == 'deleterestriction':
+            self.restriction_delete(linkage_rule_id, object_id)
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -613,6 +615,10 @@ class SilkController(BaseController):
     def comparison_delete(self, comparison_id):
         comparison = model.Session.query(Comparison).filter_by(id=comparison_id).first()
         model.Session.delete(comparison)
+        model.Session.commit()
+        
+    def restriction_delete(self, linkage_rule_id, restriction_id):
+        model.Session.query(Restriction).filter_by(id=restriction_id).delete()
         model.Session.commit()
         
     def transformation_edit(self, linkage_rule_id):
