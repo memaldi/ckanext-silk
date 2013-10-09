@@ -198,7 +198,7 @@
                     <div class="notes-extract">
                         <py:choose>
                             <h4>Comparisons for rule ${c.linkage_rule_dict['name']}</h4>
-                            <a class="btn btn-primary " href="/silk/editcomparison/${c.linkage_rule_dict['id']}">Add Comparison</a>
+                            <a class="btn btn-primary" href="/silk/editcomparison/${c.linkage_rule_dict['id']}">Add Comparison</a>
                             <py:when test="len(c.comparison_list) == 0">
                                 <p>No comparisons set</p>
                             </py:when>
@@ -232,7 +232,7 @@
         
         <py:choose>
             <py:when test="len(c.comparison_list) &gt; 1">
-                <h3>Aggregations <a class="btn btn-primary " href="/silk/editaggregation/${c.linkage_rule_dict['id']}">+</a></h3>
+                <h3>Aggregations <a class="btn btn-primary" href="/silk/editaggregation/${c.linkage_rule_dict['id']}">+</a></h3>
                 <div class="notes">
                     <div class="notes-extract">
                         <py:choose>
@@ -259,7 +259,14 @@
             <div class="form-actions">
                 <a class="btn btn-primary" href="/silk/generate/${c.linkage_rule_dict['id']}">Generate Silk Configuration</a>
                 <py:if test="c.config_xml">
-                    <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/launch/${c.linkage_rule_dict['id']}">Lauch Silk!</a>
+                    <py:choose>
+                        <py:when test="c.task_status == 'not_running'">
+                            <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/launch/${c.linkage_rule_dict['id']}">Launch Silk!</a>
+                        </py:when>
+                        <py:otherwise>
+                            <b>-></b> <a class="btn btn-primary disabled">Silk Running</a>
+                        </py:otherwise>
+                    </py:choose>
                     <div align="right">
                         <a class="btn btn-primary" href="/silk/${c.pkg['name']}/view_config/${c.linkage_rule_dict['id']}">View Config</a>
                     </div>

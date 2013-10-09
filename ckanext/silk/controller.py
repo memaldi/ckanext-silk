@@ -2,7 +2,7 @@ from pylons import config
 from ckan.plugins import SingletonPlugin, IPackageController, implements
 from ckan.lib.base import BaseController, render, c, model, g, request, response
 from logging import getLogger
-from ckan.logic import NotAuthorized, check_access, get_action
+from ckan.logic import NotAuthorized, check_access, get_action, NotFound
 import urllib
 import ckan
 import json
@@ -414,6 +414,12 @@ class SilkController(BaseController):
         
         c.config_xml = linkage_rule.config_xml
         
+        task_status = self.get_task_status(context, linkage_rule_id)
+        if task_status is None or task_status['status'] == 'finished':
+            c.task_status = 'not_running'
+        else:
+            c.task_status = 'running'
+        
         if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
             
@@ -428,6 +434,16 @@ class SilkController(BaseController):
         log.info("File ready " + str(c.file_ready))
 
         return render('silk/read_linkage_rule.html')
+        
+    def get_task_status(self, context, linkage_rule_id):
+        try:
+            task_info = {'entity_id': linkage_rule_id, 'task_type': 'ckanext-silk', 'key': 'celery_task_status'}
+            task_status = get_action('task_status_show')(context, task_info)
+            return json.loads(task_status['value'])
+        except NotFound:
+            pass
+
+        return None
         
     def save_restriction(self, params, linkage_rule_id):
         if 'class_select' in params:
@@ -1016,20 +1032,28 @@ class SilkController(BaseController):
         return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
         
     def launch(self, id, linkage_rule_id):
-        linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
         
-        task_id = str(uuid.uuid4())
-        input_file_name = '/tmp/input-%s.xml' % task_id
-        print 'Saving configuration file to %s' % input_file_name
-        
-        input_file = open(input_file_name, 'w')
-        input_file.write(linkage_rule.config_xml)
-        input_file.close()
-        
-        print 'Launching celery task for Silk'
-        celery.send_task("silk.launch", args=[input_file_name], task_id=task_id)
-        
-        linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
+        task_status = self.get_task_status(context, linkage_rule_id)
+        if task_status is None or task_status['status'] == 'finished':        
+            linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
+            
+            task_id = str(uuid.uuid4())
+            input_file_name = '/tmp/input-%s.xml' % task_id
+            print 'Saving configuration file to %s' % input_file_name
+            
+            input_file = open(input_file_name, 'w')
+            input_file.write(linkage_rule.config_xml)
+            input_file.close()
+            
+            print 'Launching celery task for Silk'
+            celery.send_task("silk.launch", args=[linkage_rule_id, input_file_name], task_id=task_id)
+            
+            linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
+        else:
+            print 'Celery task already running'
 
     def get_prefix(self, uri):
         if '#' in uri:
