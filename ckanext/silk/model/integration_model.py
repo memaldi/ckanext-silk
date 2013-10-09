@@ -42,7 +42,7 @@ restriction_table = Table('restriction', metadata,
         Column('variable_name', UnicodeText, nullable=False),
         Column('property', UnicodeText, nullable=False),
         Column('class_name', UnicodeText, nullable=False),
-        Column('linkage_rule_id', Integer, ForeignKey('linkage_rule.id')),
+        Column('linkage_rule_id', Integer, ForeignKey('linkage_rule.id', ondelete='cascade')),
 )
 
 class Restriction(object):
@@ -56,7 +56,7 @@ class Restriction(object):
 
 path_input_table = Table('path_input', metadata,
         Column('id', Integer, primary_key=True),
-        Column('restriction_id', Integer,ForeignKey('restriction.id')),
+        Column('restriction_id', Integer, ForeignKey('restriction.id', ondelete='cascade')),
         Column('path_input', UnicodeText, nullable=False),
 )
 
@@ -167,11 +167,13 @@ mapper(Comparison, comparison_table,
 mapper(Restriction, restriction_table, 
     properties={'path_inputs': relationship(PathInput, 
         backref='restriction', 
+        cascade="all,delete",
         order_by=path_input_table.c.id)
 })
 
 mapper(LinkageRule, linkage_rule_table,
     properties={'restrictions': relationship(Restriction,
-        backref='linkage_rule', 
+        backref='linkage_rule',
+        cascade="all,delete", 
         order_by=restriction_table.c.id)
 })
