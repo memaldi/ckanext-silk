@@ -260,8 +260,11 @@
                 <a class="btn btn-primary" href="/silk/generate/${c.linkage_rule_dict['id']}">Generate Silk Configuration</a>
                 <py:if test="c.config_xml">
                     <py:choose>
-                        <py:when test="c.task_status == 'not_running'">
+                        <py:when test="c.task_status is None or c.task_status == 'finished'">
                             <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/launch/${c.linkage_rule_dict['id']}">Launch Silk!</a>
+                            <py:if test="c.task_status == 'finished'">
+                                <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/get_output/${c.linkage_rule_dict['id']}">Get Output</a>
+                            </py:if>
                         </py:when>
                         <py:otherwise>
                             <b>-></b> <a class="btn btn-primary disabled">Silk Running</a>

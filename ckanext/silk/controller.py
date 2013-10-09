@@ -415,10 +415,8 @@ class SilkController(BaseController):
         c.config_xml = linkage_rule.config_xml
         
         task_status = self.get_task_status(context, linkage_rule_id)
-        if task_status is None or task_status['status'] == 'finished':
-            c.task_status = 'not_running'
-        else:
-            c.task_status = 'running'
+        if task_status is not None:
+            c.task_status = task_status['status']
         
         if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
@@ -435,9 +433,9 @@ class SilkController(BaseController):
 
         return render('silk/read_linkage_rule.html')
         
-    def get_task_status(self, context, linkage_rule_id):
+    def get_task_status(self, context, id, linkage_rule_id):
         try:
-            task_info = {'entity_id': linkage_rule_id, 'task_type': 'ckanext-silk', 'key': 'celery_task_status'}
+            task_info = {'entity_id': u'%s' % id, 'task_type': u'ckanext-silk', 'key': u'%s' % linkage_rule_id}
             task_status = get_action('task_status_show')(context, task_info)
             return json.loads(task_status['value'])
         except NotFound:
@@ -1036,7 +1034,9 @@ class SilkController(BaseController):
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
         
-        task_status = self.get_task_status(context, linkage_rule_id)
+        task_status = self.get_task_status(context, id, linkage_rule_id)
+        print task_status
+        
         if task_status is None or task_status['status'] == 'finished':        
             linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
             
@@ -1049,9 +1049,8 @@ class SilkController(BaseController):
             input_file.close()
             
             print 'Launching celery task for Silk'
-            celery.send_task("silk.launch", args=[linkage_rule_id, input_file_name], task_id=task_id)
-            
             linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
+            celery.send_task("silk.launch", args=[id, linkage_rule_id, input_file_name, linkage_rule.rule_output], task_id=task_id)
         else:
             print 'Celery task already running'
 
@@ -1129,3 +1128,27 @@ class SilkController(BaseController):
         c.config_xml = linkage_rule.config_xml
         
         return render('silk/view_config.html')
+        
+    def get_output(self, id, linkage_rule_id):
+        log.info('Dowloading output for linkage rule id: %s' % linkage_rule_id)
+
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
+        
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'for_view': True}
+
+        task_status = self.get_task_status(context, linkage_rule_id)
+
+        if task_status is not None and task_status['status'] == 'finished':
+            data = task_status['data']
+            filename = '%s.nt' % linkage_rule.name
+
+            response.status_int = 200
+            response.headers['Content-Type'] = 'application/octet-stream'
+            response.headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
+            response.headers['Content-Length'] = len(data)
+            response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+
+            return data

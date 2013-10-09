@@ -1,4 +1,5 @@
 from ckan.lib.celery_app import celery
+from celery.signals import beat_init
 import os
 import ConfigParser
 import json
@@ -29,16 +30,65 @@ def update_task_status(task_info):
     if res.status_code == 200:
         return json.loads(res.content)['result']
     else:
-        print 'ckan failed to update task_status, status_code (%s), error %s' % (res.status_code, res.content)
         return None
+        
+def get_package_list():
+    res = requests.post(
+        API_URL + 'action/package_list', json.dumps({}),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    else:
+        return {}
+        
+def get_package_info(package_name):
+    res = requests.post(
+        API_URL + 'action/package_show', json.dumps({'id': package_name}),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    else:
+        return {}
+        
+def get_pending_tasks():
+    pending_tasks = []
+    
+    packages = get_package_list()
+
+    for package in packages:
+        package_info = get_package_info(package)
+
+        tasks_status = get_tasks_status(package_info['id'])
+        if len(tasks_status) > 0:
+            print tasks_status            
+
+    return pending_tasks
+
+@beat_init.connect    
+def clear_broken_status_tasks(sender=None, conf=None, **kwargs):
+    print 'Clearing pending task status'
+
+    pending_tasks = get_pending_tasks()
+
+    print pending_tasks
+
+    for task_id in pending_tasks.items():
+        print 'Deleting task id %s' % task_id
+        delete_task_status(task_id)
 
 @celery.task(name = "silk.launch")
-def launch(linkage_rule_id, file_name):
+def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
     task_info = {
-            'entity_id': linkage_rule_id,
+            'entity_id': package_id,
             'entity_type': u'linkage_rule',
             'task_type': u'ckanext-silk',
-            'key': u'celery_task_status',
+            'key': u'%s' % linkage_rule_id,
             'value': json.dumps({'status': 'running'}),
             'error': u'',
             'last_updated': datetime.now().isoformat()
@@ -48,19 +98,21 @@ def launch(linkage_rule_id, file_name):
     
     print 'Launching Silk...'
     
-    command = 'java -DconfigFile=%s -jar %s/silk.jar' % (file_name, SILK_HOME)
+    command = 'java -DconfigFile=%s -jar %s/silk.jar' % (input_file_name, SILK_HOME)
     print 'Executing command', command
     os.system(command)    
     
     print 'Silk process finished'
     
+    data = open(output_file_name, 'r').read()
+    
     task_info = {
             'id': task_status['id'],
-            'entity_id': linkage_rule_id,
+            'entity_id': package_id,
             'entity_type': u'linkage_rule',
             'task_type': u'ckanext-silk',
-            'key': u'celery_task_status',
-            'value': json.dumps({'status': 'finished'}),
+            'key': u'%s' % linkage_rule_id,
+            'value': json.dumps({'status': 'finished', 'data' : data}),
             'error': u'',
             'last_updated': datetime.now().isoformat()       
         }
