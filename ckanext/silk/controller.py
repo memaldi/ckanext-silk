@@ -258,6 +258,8 @@ class SilkController(BaseController):
             self.comparison_delete(object_id)
         elif object == 'deleterestriction':
             self.restriction_delete(linkage_rule_id, object_id)
+        elif object == 'deletetransformation':
+            self.transformation_delete(linkage_rule_id, object_id)
         
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -636,8 +638,11 @@ class SilkController(BaseController):
         model.Session.query(Restriction).filter_by(id=restriction_id).delete()
         model.Session.commit()
         
-    def transformation_edit(self, linkage_rule_id):
+    def transformation_delete(self, linkage_rule_id, transformation_id):
+        model.Session.query(Transformation).filter_by(id=transformation_id).delete()
+        model.Session.commit()
         
+    def transformation_edit(self, linkage_rule_id):
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
         c.linkage_rule_dict = {'id': linkage_rule.id, 'name': linkage_rule.name, 'orig_dataset_id': linkage_rule.orig_dataset_id, 'orig_resource_id': linkage_rule.orig_resource_id, 'dest_dataset_id': linkage_rule.dest_dataset_id, 'dest_resource_id': linkage_rule.dest_resource_id}
 
