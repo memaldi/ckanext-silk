@@ -262,7 +262,7 @@
                         <py:when test="c.task_status is 'not_running' or c.task_status == 'finished'">
                             <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/launch/${c.linkage_rule_dict['id']}">Launch Silk!</a>
                             <py:if test="c.rule_output">
-                                <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/get_output/${c.linkage_rule_dict['id']}">Get Output</a>
+                                <b>-></b> <a class="btn btn-primary" href="/silk/${c.pkg['name']}/get_output/${c.linkage_rule_dict['id']}">Download Rule Output</a>
                             </py:if>
                         </py:when>
                         <py:otherwise>
