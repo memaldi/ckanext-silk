@@ -56,6 +56,16 @@ def get_linkage_rules(package_id):
     
     return ()
     
+def save_rule_output(linkage_rule_id, rule_output):
+    data = {'linkage_rule_id': linkage_rule_id, 'rule_output': rule_output }
+    res = requests.post(
+        API_URL + 'silk/saveruleoutput', json.dumps(data),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+    
+    return res.status_code == 200
+    
 def get_package_info(package_id):
     res = requests.post(
         API_URL + 'action/package_show', json.dumps({'id': package_id}),
@@ -137,7 +147,13 @@ def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
     
     data = open(output_file_name, 'r').read()
     
-    task_info = create_task_info(package_id, linkage_rule_id, json.dumps({'status': 'finished', 'data' : data}))
+    print 'Saving output for rule %s' % linkage_rule_id
+    if save_rule_output(linkage_rule_id, data):
+        print 'Rule output correctly saved'
+    else:
+        print 'Some problem ocurred during rule output saving'
+    
+    task_info = create_task_info(package_id, linkage_rule_id, json.dumps({'status': 'finished'}))
     task_info['id'] = task_status['id']
 
     update_task_status(task_info)

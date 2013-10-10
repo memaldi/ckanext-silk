@@ -64,5 +64,6 @@ class SilkExtension(SingletonPlugin):
         map.connect('/silk/{id}/{linkage_rule_id}/{object}/{object_id}', controller='ckanext.silk.controller:SilkController', action='resource_read')
         map.connect('/silk/{id}', controller='ckanext.silk.controller:SilkController', action='read')
         map.connect('/api/silk/listlinkagerules', controller='ckanext.silk.controller:ApiController', action='list_linkage_rules')
+        map.connect('/api/silk/saveruleoutput', controller='ckanext.silk.controller:ApiController', action='save_rule_output')
                 
         return map

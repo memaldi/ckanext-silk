@@ -420,6 +420,8 @@ class SilkController(BaseController):
             c.task_status = task_status['status']
         else:
             c.task_status = 'not_running'
+            
+        c.rule_output = linkage_rule is not None            
         
         if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
@@ -430,10 +432,6 @@ class SilkController(BaseController):
         if len(c.orig_path_inputs_list) > 0 and len(c.dest_path_inputs_list) > 0:
             c.path_inputs_control = True        
         
-        c.file_ready = linkage_rule.rule_output is not None and os.path.exists(linkage_rule.rule_output)
-            
-        log.info("File ready " + str(c.file_ready))
-
         return render('silk/read_linkage_rule.html')
         
     def get_task_status(self, context, id, linkage_rule_id):
@@ -1027,7 +1025,7 @@ class SilkController(BaseController):
         silk.appendChild(outputs)
         document.appendChild(silk)
         
-        linkage_rule.rule_output = output_file_name
+        linkage_rule.output_file = output_file_name
         linkage_rule.config_xml = document.toprettyxml(indent='  ')        
         model.Session.commit()
         
@@ -1039,7 +1037,6 @@ class SilkController(BaseController):
                    'for_view': True}
         
         task_status = self.get_task_status(context, id, linkage_rule_id)
-        print task_status
         
         if task_status is None or task_status['status'] == 'finished':        
             linkage_rule = model.Session.query(LinkageRule).filter_by(orig_dataset_id=id, id=linkage_rule_id).first()
@@ -1053,9 +1050,11 @@ class SilkController(BaseController):
             input_file.close()
             
             print 'Launching celery task for Silk'
-            celery.send_task("silk.launch", args=[id, linkage_rule_id, input_file_name, linkage_rule.rule_output], task_id=task_id)
+            celery.send_task("silk.launch", args=[id, linkage_rule_id, input_file_name, linkage_rule.output_file], task_id=task_id)
         else:
             print 'Celery task already running'
+            
+        return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
 
     def get_prefix(self, uri):
         if '#' in uri:
@@ -1081,12 +1080,11 @@ class SilkController(BaseController):
         
     def get_results(self, linkage_rule_id):
         linkage_rule = model.Session.query(LinkageRule).filter_by(id=linkage_rule_id).first()
-        f = open(linkage_rule.rule_output)
-        data = f.read()
+    
         response.status_int = 200
         response.headers['Content-Type'] = 'application/octet-stream'
         response.headers['Content-Disposition'] = 'attachment; filename="%s"' % 'result.n3'
-        response.headers['Content-Length'] = len(data)
+        response.headers['Content-Length'] = len(linkage_rule.rule_output)
         response.headers['Cache-Control'] = 'no-cache, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
 
@@ -1141,20 +1139,17 @@ class SilkController(BaseController):
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
 
-        task_status = self.get_task_status(context, id, linkage_rule_id)
-
-        if task_status is not None and task_status['status'] == 'finished':
-            data = task_status['data']
+        if linkage_rule.rule_output is not None:
             filename = '%s.nt' % linkage_rule.name
 
             response.status_int = 200
             response.headers['Content-Type'] = '; charset=utf-8'
             response.headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
-            response.headers['Content-Length'] = len(data)
+            response.headers['Content-Length'] = len(linkage_rule.rule_output)
             response.headers['Cache-Control'] = 'no-cache, must-revalidate'
             response.headers['Pragma'] = 'no-cache'
 
-            return data
+            return linkage_rule.rule_output
 
 class ApiController(BaseApiController):
     
@@ -1176,3 +1171,21 @@ class ApiController(BaseApiController):
         result['result'] = data
         
         return self._finish_ok(response_data=result)
+        
+    def save_rule_output(self):
+        request = self._get_request_data()
+
+        if not 'linkage_rule_id' in request:
+            abort(400, 'Please provide a suitable linkage_rule_id parameter')
+            
+        if not 'rule_output' in request:
+            abort(400, 'Please provide a suitable rule_output parameter')
+            
+        print 'Saving data for rule output %s' % request['linkage_rule_id']
+            
+        linkage_rule = model.Session.query(LinkageRule).filter_by(id=request['linkage_rule_id']).first()
+        linkage_rule.rule_output = request['rule_output']
+        
+        model.Session.commit()
+
+        return self._finish_ok({})
