@@ -133,7 +133,7 @@ def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
     print 'Executing command', command
     os.system(command)    
     
-    print 'Silk process finished'
+    print 'Silk process finished. Output written to %s' % output_file_name
     
     data = open(output_file_name, 'r').read()
     

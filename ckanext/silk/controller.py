@@ -1004,13 +1004,15 @@ class SilkController(BaseController):
         
         task_id=str(uuid.uuid4())
         
-        outputs = document.createElement('Outputs')
+        output_file_name = '/tmp/output-%s.nt' % task_id
         
+        outputs = document.createElement('Outputs')
+                
         output = document.createElement('Output')
         output.setAttribute('type', 'file')
         param = document.createElement('Param')
         param.setAttribute('name', 'file')
-        param.setAttribute('value', '/tmp/output-%s.xml' % task_id)
+        param.setAttribute('value', output_file_name)
         output.appendChild(param)
         param = document.createElement('Param')
         param.setAttribute('name', 'format')
@@ -1025,6 +1027,7 @@ class SilkController(BaseController):
         silk.appendChild(outputs)
         document.appendChild(silk)
         
+        linkage_rule.rule_output = output_file_name
         linkage_rule.config_xml = document.toprettyxml(indent='  ')        
         model.Session.commit()
         
@@ -1050,7 +1053,6 @@ class SilkController(BaseController):
             input_file.close()
             
             print 'Launching celery task for Silk'
-            linkage_rule.rule_output = '/tmp/output-%s.xml' % task_id
             celery.send_task("silk.launch", args=[id, linkage_rule_id, input_file_name, linkage_rule.rule_output], task_id=task_id)
         else:
             print 'Celery task already running'
