@@ -1141,14 +1141,14 @@ class SilkController(BaseController):
                    'user': c.user or c.author, 'extras_as_string': True,
                    'for_view': True}
 
-        task_status = self.get_task_status(context, linkage_rule_id)
+        task_status = self.get_task_status(context, id, linkage_rule_id)
 
         if task_status is not None and task_status['status'] == 'finished':
             data = task_status['data']
             filename = '%s.nt' % linkage_rule.name
 
             response.status_int = 200
-            response.headers['Content-Type'] = 'application/octet-stream'
+            response.headers['Content-Type'] = '; charset=utf-8'
             response.headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
             response.headers['Content-Length'] = len(data)
             response.headers['Cache-Control'] = 'no-cache, must-revalidate'
