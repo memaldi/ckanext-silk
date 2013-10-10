@@ -22,7 +22,6 @@
   
   <div py:match="content">
         <div class="resource-actions">
-            <a class="btn btn-primary" href="/silk/editlinkagerules/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Edit Rule</a>
             <a class="btn btn-danger" href="/silk/removelinkagerule/${c.pkg_dict['name']}/${c.linkage_rule_dict['id']}">Remove Rule</a>
         </div>
         <div class="quick-info">
@@ -119,7 +118,7 @@
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
-                                            <dd><a href="/silk/editpathinput/${c.linkage_rule_dict['id']}/orig/${path_input['id']}">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
+                                            <dd><a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>
@@ -143,7 +142,7 @@
                                             <dt>Path input</dt>
                                             <dd>${path_input['path_input']}</dd>
                                             <dt>Actions</dt>
-                                            <dd><a href="/silk/editpathinput/${c.linkage_rule_dict['id']}/dest/${path_input['id']}">Edit</a> | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
+                                            <dd><a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletepathinput/${path_input['id']}">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>
@@ -180,7 +179,7 @@
                                                 <dd>${parameter.value}</dd>
                                             </py:for>
                                             <dt>Actions</dt>
-                                            <dd><a href="">Edit</a> | <a href="">Delete</a></dd>
+                                            <dd><a href="">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>
@@ -219,7 +218,7 @@
                                             <dt>Required</dt>
                                             <dd>${comparison['required']}</dd>
                                             <dt>Actions</dt>
-                                            <dd>Edit | <a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletecomparison/${comparison['id']}">Delete</a></dd>
+                                            <dd><a href="/silk/${c.pkg['name']}/${c.linkage_rule_dict['id']}/deletecomparison/${comparison['id']}">Delete</a></dd>
                                         </dl>
                                     </py:for>
                                 </div>
