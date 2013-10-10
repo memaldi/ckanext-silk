@@ -29,8 +29,8 @@ def update_task_status(task_info):
 
     if res.status_code == 200:
         return json.loads(res.content)['result']
-    else:
-        return None
+    
+    return ()
         
 def get_package_list():
     res = requests.post(
@@ -41,59 +41,90 @@ def get_package_list():
 
     if res.status_code == 200:
         return json.loads(res.content)['result']
-    else:
-        return {}
-        
-def get_package_info(package_name):
+    
+    return ()
+
+def get_linkage_rules(package_id):
     res = requests.post(
-        API_URL + 'action/package_show', json.dumps({'id': package_name}),
+        API_URL + 'silk/listlinkagerules', json.dumps({'package_id': package_id}),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+    
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    
+    return ()
+    
+def get_package_info(package_id):
+    res = requests.post(
+        API_URL + 'action/package_show', json.dumps({'id': package_id}),
         headers = {'Authorization': API_KEY,
                    'Content-Type': 'application/json'}
     )
 
     if res.status_code == 200:
         return json.loads(res.content)['result']
-    else:
-        return {}
-        
-def get_pending_tasks():
-    pending_tasks = []
     
-    packages = get_package_list()
+    return ()
+    
+def get_task_status(package_id, linkage_rule_id):
+    task_info = {'entity_id': package_id, 
+        'task_type': u'ckanext-silk', 
+        'key': u'%s' % linkage_rule_id
+        }
+    
+    res = requests.post(
+        API_URL + 'action/task_status_show', json.dumps(task_info),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
 
-    for package in packages:
-        package_info = get_package_info(package)
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    
+    return None
 
-        tasks_status = get_tasks_status(package_info['id'])
-        if len(tasks_status) > 0:
-            print tasks_status            
+def delete_task_status(task_id):
+    res = requests.post(
+        API_URL + 'action/task_status_delete', json.dumps({'id': task_id}),
+        headers = {'Authorization': API_KEY,
+        'Content-Type': 'application/json'}
+    )
 
-    return pending_tasks
+    return res.status_code == 200
 
 @beat_init.connect    
 def clear_broken_status_tasks(sender=None, conf=None, **kwargs):
-    print 'Clearing pending task status'
+    print 'Clearing old task status'
+    
+    package_list = get_package_list()
+    for package in package_list:
+        package_info = get_package_info(package)
+        
+        linkage_rules = get_linkage_rules(package_info['name'])
+        for linkage_rule_id in linkage_rules['rules']:
+            task_status = get_task_status(package_info['name'], linkage_rule_id)
 
-    pending_tasks = get_pending_tasks()
-
-    print pending_tasks
-
-    for task_id in pending_tasks.items():
-        print 'Deleting task id %s' % task_id
-        delete_task_status(task_id)
-
-@celery.task(name = "silk.launch")
-def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
+            if task_status is not None:
+                delete_task_status(task_status['id'])
+    
+def create_task_info(package_id, linkage_rule_id, json_value):    
     task_info = {
             'entity_id': package_id,
-            'entity_type': u'linkage_rule',
+            'entity_type': u'package',
             'task_type': u'ckanext-silk',
             'key': u'%s' % linkage_rule_id,
-            'value': json.dumps({'status': 'running'}),
+            'value': json_value,
             'error': u'',
             'last_updated': datetime.now().isoformat()
         }
         
+    return task_info
+
+@celery.task(name = "silk.launch")
+def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
+    task_info = create_task_info(package_id, linkage_rule_id, json.dumps({'status': 'running'}))
     task_status = update_task_status(task_info)
     
     print 'Launching Silk...'
@@ -106,15 +137,7 @@ def launch(package_id, linkage_rule_id, input_file_name, output_file_name):
     
     data = open(output_file_name, 'r').read()
     
-    task_info = {
-            'id': task_status['id'],
-            'entity_id': package_id,
-            'entity_type': u'linkage_rule',
-            'task_type': u'ckanext-silk',
-            'key': u'%s' % linkage_rule_id,
-            'value': json.dumps({'status': 'finished', 'data' : data}),
-            'error': u'',
-            'last_updated': datetime.now().isoformat()       
-        }
+    task_info = create_task_info(package_id, linkage_rule_id, json.dumps({'status': 'finished', 'data' : data}))
+    task_info['id'] = task_status['id']
 
     update_task_status(task_info)

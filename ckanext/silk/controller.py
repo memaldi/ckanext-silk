@@ -14,6 +14,7 @@ from xml.dom.minidom import Document
 import uuid
 from ckan.lib.celery_app import celery
 import os
+from ckan.controllers.api import ApiController as BaseApiController 
 
 log = getLogger(__name__)
 
@@ -414,9 +415,11 @@ class SilkController(BaseController):
         
         c.config_xml = linkage_rule.config_xml
         
-        task_status = self.get_task_status(context, linkage_rule_id)
+        task_status = self.get_task_status(context, c.pkg_dict['name'], linkage_rule_id)
         if task_status is not None:
             c.task_status = task_status['status']
+        else:
+            c.task_status = 'not_running'
         
         if (len(c.comparison_list) > 0 and len(c.comparison_list) <= 1) or (len(c.comparison_list) > 1 and len(c.aggregation_list) >= 1):
             c.launch_control = True
@@ -435,13 +438,11 @@ class SilkController(BaseController):
         
     def get_task_status(self, context, id, linkage_rule_id):
         try:
-            task_info = {'entity_id': u'%s' % id, 'task_type': u'ckanext-silk', 'key': u'%s' % linkage_rule_id}
+            task_info = {'entity_id': id, 'task_type': u'ckanext-silk', 'key': u'%s' % linkage_rule_id}
             task_status = get_action('task_status_show')(context, task_info)
             return json.loads(task_status['value'])
         except NotFound:
-            pass
-
-        return None
+            return None
         
     def save_restriction(self, params, linkage_rule_id):
         if 'class_select' in params:
@@ -1152,3 +1153,24 @@ class SilkController(BaseController):
             response.headers['Pragma'] = 'no-cache'
 
             return data
+
+class ApiController(BaseApiController):
+    
+    def list_linkage_rules(self):
+        request = self._get_request_data()
+        if not 'package_id' in request:
+            abort(400, 'Please provide a suitable package_id parameter')         
+            
+        linkage_rules = model.Session.query(LinkageRule).filter_by(orig_dataset_id=request['package_id']).all()
+        
+        ids = []
+        for linkage_rule in linkage_rules:
+            ids.append(linkage_rule.id)
+        
+        data = {}
+        data['rules'] = ids        
+        
+        result = {}
+        result['result'] = data
+        
+        return self._finish_ok(response_data=result)
