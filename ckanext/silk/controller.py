@@ -1,6 +1,6 @@
-from pylons import config
+from pylons import config, url
 from ckan.plugins import SingletonPlugin, IPackageController, implements
-from ckan.lib.base import BaseController, render, c, model, g, request, response
+from ckan.lib.base import BaseController, render, c, model, g, request, response, redirect
 from logging import getLogger
 from ckan.logic import NotAuthorized, check_access, get_action, NotFound
 import urllib
@@ -1034,7 +1034,7 @@ class SilkController(BaseController):
         linkage_rule.config_xml = document.toprettyxml(indent='  ')        
         model.Session.commit()
         
-        return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
+        redirect(url(controller='ckanext.silk.controller:SilkController', action='resource_read', id=c.pkg_dict['name'], linkage_rule_id=linkage_rule_id))
         
     def launch(self, id, linkage_rule_id):
         context = {'model': model, 'session': model.Session,
@@ -1059,7 +1059,7 @@ class SilkController(BaseController):
         else:
             print 'Celery task already running'
             
-        return self.resource_read(linkage_rule.orig_dataset_id, linkage_rule_id)
+        redirect(url(controller='ckanext.silk.controller:SilkController', action='resource_read', id=id, linkage_rule_id=linkage_rule_id))
 
     def get_prefix(self, uri):
         if '#' in uri:
