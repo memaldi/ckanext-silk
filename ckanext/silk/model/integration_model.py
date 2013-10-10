@@ -84,7 +84,7 @@ parameter_table = Table('parameter', metadata,
         Column('id', Integer, primary_key=True),
         Column('name', UnicodeText, nullable=False),
         Column('value', UnicodeText, nullable=False),
-        Column('transformation_id', Integer, ForeignKey('transformation.id')),
+        Column('transformation_id', Integer, ForeignKey('transformation.id', ondelete='cascade')),
 )        
 
 class Parameter(object):
@@ -95,8 +95,8 @@ class Parameter(object):
         self.transformation_id = transformation_id
         
 transformation_path_inputs_association_table = Table('association_t_p', metadata,
-        Column('transformation_id', Integer, ForeignKey('transformation.id')),
-        Column('path_input_id', Integer, ForeignKey('path_input.id')),
+        Column('transformation_id', Integer, ForeignKey('transformation.id', ondelete='cascade')),
+        Column('path_input_id', Integer, ForeignKey('path_input.id', ondelete='cascade')),
 )
 
 comparison_table = Table('comparison', metadata,
@@ -108,13 +108,13 @@ comparison_table = Table('comparison', metadata,
 )
 
 comparison_transformation_association_table = Table('association_c_t', metadata,
-        Column('comparison_id', Integer, ForeignKey('comparison.id')),
-        Column('transformation_id', Integer, ForeignKey('transformation.id')),
+        Column('comparison_id', Integer, ForeignKey('comparison.id', ondelete='cascade')),
+        Column('transformation_id', Integer, ForeignKey('transformation.id', ondelete='cascade')),
 )
 
 comparison_path_input_association_table = Table('association_c_p', metadata,
-        Column('comparison_id', Integer, ForeignKey('comparison.id')),
-        Column('path_input_id', Integer, ForeignKey('path_input.id')),
+        Column('comparison_id', Integer, ForeignKey('comparison.id', ondelete='cascade')),
+        Column('path_input_id', Integer, ForeignKey('path_input.id', ondelete='cascade')),
 )
 
 class Comparison(object):
@@ -130,7 +130,7 @@ comparison_parameters_table = Table('comparison_parameters', metadata,
     Column('id', Integer, primary_key=True),
     Column('name', UnicodeText, nullable=False),
     Column('value', UnicodeText, nullable=False),
-    Column('comparison_id', Integer, ForeignKey('comparison.id')),
+    Column('comparison_id', Integer, ForeignKey('comparison.id', ondelete='cascade')),
 )
         
 class ComparisonParameters(object):
